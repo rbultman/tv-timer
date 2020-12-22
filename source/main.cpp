@@ -4,6 +4,8 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "mbed.h"
 
 // Blinking rate in milliseconds
@@ -24,14 +26,18 @@ SPI spi(D11, D12, D13);
 
 int main()
 {
+   printf("Starting...\r\n");
+
    while (true) 
    {
       greenLed = 1;
       lcdBacklight = 1;
+      printf("Light on\r\n");
       ThisThread::sleep_for(BLINKING_RATE);
       
       greenLed = 0;
       lcdBacklight = 0;
+      printf("Light off\r\n");
       ThisThread::sleep_for(BLINKING_RATE);
    }
 }
