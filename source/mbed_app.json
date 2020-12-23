@@ -1,8 +1,9 @@
 {
   "artifact_name": "tv-timer",
     "target_overrides": {
-        "K64F": {
-            "platform.stdio-baud-rate": 9600
+        "*": {
+            "platform.stdio-baud-rate": 115200,
+            "platform.stdio-convert-newlines": true
         }
     }
 }
