@@ -18,8 +18,8 @@
  * DELAY INTERFACE
  *********************/
 #define LV_DRV_DELAY_INCLUDE  <stdint.h>            /*Dummy include by default*/
-#define LV_DRV_DELAY_US(us)  /*delay_us(us)*/       /*Delay the given number of microseconds*/
-#define LV_DRV_DELAY_MS(ms)  /*delay_ms(ms)*/       /*Delay the given number of milliseconds*/
+#define LV_DRV_DELAY_US(us)   LvglIface_wait_us(us) /*Delay the given number of microseconds*/
+#define LV_DRV_DELAY_MS(ms)   LvglIface_wait_ms(ms) /*Delay the given number of milliseconds*/
 
 /*********************
  * DISPLAY INTERFACE
@@ -28,15 +28,15 @@
 /*------------
  *  Common
  *------------*/
-#define LV_DRV_DISP_INCLUDE         <stdint.h>           /*Dummy include by default*/
-#define LV_DRV_DISP_CMD_DATA(val)  /*pin_x_set(val)*/    /*Set the command/data pin to 'val'*/
-#define LV_DRV_DISP_RST(val)       /*pin_x_set(val)*/    /*Set the reset pin to 'val'*/
+#define LV_DRV_DISP_INCLUDE         <stdint.h>             /*Dummy include by default*/
+#define LV_DRV_DISP_CMD_DATA(val)  LvglIface_LcdCD(val)    /*Set the command/data pin to 'val'*/
+#define LV_DRV_DISP_RST(val)       LvglIface_LcdReset(val) /*Set the reset pin to 'val'*/
 
 /*---------
  *  SPI
  *---------*/
 #define LV_DRV_DISP_SPI_CS(val)          /*spi_cs_set(val)*/     /*Set the SPI's Chip select to 'val'*/
-#define LV_DRV_DISP_SPI_WR_BYTE(data)    /*spi_wr(data)*/        /*Write a byte the SPI bus*/
+#define LV_DRV_DISP_SPI_WR_BYTE(data)    LvglIface_spiWrite(data) /*Write a byte the SPI bus*/
 #define LV_DRV_DISP_SPI_WR_ARRAY(adr, n) /*spi_wr_mem(adr, n)*/  /*Write 'n' bytes to SPI bus from 'adr'*/
 
 /*------------------
@@ -175,7 +175,7 @@
  *  ST7565 (Monochrome, low res.)
  *-----------------------------*/
 #ifndef USE_ST7565
-#  define USE_ST7565          0
+#  define USE_ST7565          1
 #endif
 
 #if USE_ST7565
@@ -233,7 +233,7 @@
  *  ILI9341 240X320 TFT LCD
  *------------------------------------------------*/
 #ifndef USE_ILI9341
-#  define USE_ILI9341       1
+#  define USE_ILI9341       0
 #endif
 
 #if USE_ILI9341
@@ -285,7 +285,7 @@
  *    XPT2046
  *--------------*/
 #ifndef USE_XPT2046
-#  define USE_XPT2046         1
+#  define USE_XPT2046         0
 #endif
 
 #if USE_XPT2046
