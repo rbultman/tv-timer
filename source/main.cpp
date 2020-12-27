@@ -127,19 +127,33 @@ int main()
 {
    printf("Starting...\r\n");
 
+   ThisThread::sleep_for(10s);
+
    spi.frequency(10000000);
 
-   InitClock();
-   Display_Initialize();
+   ds3231_cntl_stat_t rtcStatus;
+   rtc.get_cntl_stat_reg(&rtcStatus);
+   printf("RTC control: %d\r\n", rtcStatus.control);
+   printf("RTC status: %d\r\n", rtcStatus.status);
+   if (rtcStatus.status & OSF)
+   {
+      puts("RTC oscillator stopped...configuring.");
+      InitClock();
+   }
+   else
+   {
+      puts("RTC oscillator already configured.");
+   }
 
    lcdBacklight = 1;
-
-   heartbeatThread.start(HeartbeatTask);
-   InitRtcClockInput();
+   Display_Initialize();
 
    lv_scr_load(MenuTest_CreateScreen(Display_GetInputDevice()));
    char msg[64] = "Menu";
    MenuTest_ShowMenu(msg);
+
+   heartbeatThread.start(HeartbeatTask);
+   InitRtcClockInput();
 
    while (true)
    {
