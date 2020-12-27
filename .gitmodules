@@ -1,6 +1,0 @@
-[submodule "source/lvgl"]
-	path = source/lvgl
-	url = https://github.com/lvgl/lvgl
-[submodule "source/lv_drivers"]
-	path = source/lv_drivers
-	url = https://github.com/lvgl/lv_drivers
