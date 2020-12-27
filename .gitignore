@@ -2,3 +2,4 @@ BUILD
 __pycache__
 mbed-os
 .vscode
+default.vim
