@@ -11,20 +11,9 @@
 #include <stdlib.h>
 #include "menu_test.h"
 
-static lv_indev_t *pInputDevice = NULL;
-
-lv_obj_t *MenuTest_CreateScreen(lv_indev_t *_pInputDevice)
+lv_obj_t *Menu_Test::CreateScreen(lv_indev_t *pInputDevice)
 {
-    static lv_obj_t *scr = NULL;
-    pInputDevice = _pInputDevice;
-
-    if (scr)
-    {
-        lv_obj_del(scr);
-    }
-    // the main screen object
-    scr = lv_obj_create(NULL, NULL);
-    lv_obj_set_size(scr, LV_HOR_RES, LV_VER_RES);
+    this->ScreenClass::CreateScreen(pInputDevice);
 
     return scr;
 }
@@ -70,10 +59,7 @@ static void event_handler(lv_obj_t *obj, lv_event_t event)
     }
 }
 
-static lv_obj_t *label;
-static lv_group_t *group;
-static lv_style_t menuButtonStyle;
-void MenuTest_ShowMenu(char *pText)
+void Menu_Test::ShowMenu(char *pText)
 {
     label = lv_label_create(lv_scr_act(), NULL);    /*Create a label*/
     lv_obj_set_pos(label, 0, 0);                    /*Set its position*/

@@ -9,8 +9,18 @@
 #define MENU_TEST_H
 
 #include "lvgl.h"
+#include "screen_class.h"
 
-lv_obj_t *MenuTest_CreateScreen(lv_indev_t *pInputDevice);
-void MenuTest_ShowMenu(char *pText);
+class Menu_Test : public ScreenClass
+{
+    public:
+        lv_obj_t *CreateScreen(lv_indev_t *pInputDevice);
+        void ShowMenu(char *pText);
+
+    private:
+        lv_obj_t *label;
+        lv_group_t *group;
+        lv_style_t menuButtonStyle;
+};
 
 #endif // MENU_TEST_H
