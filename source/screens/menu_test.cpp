@@ -87,12 +87,14 @@ void MenuTest_ShowMenu(char *pText)
     lv_style_set_bg_color(&menuButtonStyle, LV_STATE_DEFAULT, LV_COLOR_WHITE);
     lv_style_set_text_color(&menuButtonStyle, LV_STATE_DEFAULT, LV_COLOR_BLACK);
     lv_style_set_radius(&menuButtonStyle, LV_STATE_DEFAULT, 0);
+    lv_style_set_text_font(&menuButtonStyle, LV_STATE_DEFAULT, &jetbrains_light_14);
     // focused style
     lv_style_set_border_width(&menuButtonStyle, LV_STATE_FOCUSED, 1);
     lv_style_set_border_color(&menuButtonStyle, LV_STATE_FOCUSED, LV_COLOR_WHITE);
     lv_style_set_bg_color(&menuButtonStyle, LV_STATE_FOCUSED, LV_COLOR_BLACK);
     lv_style_set_text_color(&menuButtonStyle, LV_STATE_FOCUSED, LV_COLOR_WHITE);
     lv_style_set_radius(&menuButtonStyle, LV_STATE_FOCUSED, 0);
+    lv_style_set_text_font(&menuButtonStyle, LV_STATE_FOCUSED, &jetbrains_light_14);
 
     lv_obj_t *btn1 = lv_btn_create(lv_scr_act(), NULL);
     lv_obj_add_style(btn1, LV_BTN_PART_MAIN, &menuButtonStyle);

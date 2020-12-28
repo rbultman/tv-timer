@@ -45,7 +45,7 @@
 #define LV_COLOR_TRANSP    LV_COLOR_LIME         /*LV_COLOR_LIME: pure green*/
 
 /* Enable anti-aliasing (lines, and radiuses will be smoothed) */
-#define LV_ANTIALIAS        1
+#define LV_ANTIALIAS        0
 
 /* Default display refresh period.
  * Can be changed in the display driver (`lv_disp_drv_t`).*/
@@ -401,6 +401,11 @@ typedef void * lv_indev_drv_user_data_t;            /*Type of user data in the i
 #define LV_FONT_MONTSERRAT_44    0
 #define LV_FONT_MONTSERRAT_46    0
 #define LV_FONT_MONTSERRAT_48    0
+#define JETBRAINS_REGULAR_12     0
+#define JETBRAINS_LIGHT_14       1
+#define JETBRAINS_REGULAR_14     1
+#define JETBRAINS_MEDIUM_14      1
+#define JETBRAINS_BOLD_14        1
 
 /* Demonstrate special features */
 #define LV_FONT_MONTSERRAT_12_SUBPX      0
@@ -411,7 +416,7 @@ typedef void * lv_indev_drv_user_data_t;            /*Type of user data in the i
 /*Pixel perfect monospace font
  * http://pelulamu.net/unscii/ */
 #define LV_FONT_UNSCII_8     0
-#define LV_FONT_UNSCII_16     0
+#define LV_FONT_UNSCII_16     1
 
 /* Optionally declare your custom fonts here.
  * You can use these fonts as default font too
@@ -419,7 +424,10 @@ typedef void * lv_indev_drv_user_data_t;            /*Type of user data in the i
  * #define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(my_font_1) \
  *                                LV_FONT_DECLARE(my_font_2)
  */
-#define LV_FONT_CUSTOM_DECLARE
+#define LV_FONT_CUSTOM_DECLARE LV_FONT_DECLARE(jetbrains_light_14)   \
+                               LV_FONT_DECLARE(jetbrains_regular_14) \
+                               LV_FONT_DECLARE(jetbrains_medium_14)  \
+                               LV_FONT_DECLARE(jetbrains_bold_14)    \
 
 /* Enable it if you have fonts with a lot of characters.
  * The limit depends on the font size, font face and bpp
@@ -479,10 +487,14 @@ typedef void * lv_font_user_data_t;
 #define LV_THEME_DEFAULT_COLOR_PRIMARY      lv_color_hex(0x01a2b1)
 #define LV_THEME_DEFAULT_COLOR_SECONDARY    lv_color_hex(0x44d1b6)
 #define LV_THEME_DEFAULT_FLAG               LV_THEME_MATERIAL_FLAG_LIGHT
-#define LV_THEME_DEFAULT_FONT_SMALL         &lv_font_montserrat_14
-#define LV_THEME_DEFAULT_FONT_NORMAL        &lv_font_montserrat_14
-#define LV_THEME_DEFAULT_FONT_SUBTITLE      &lv_font_montserrat_14
-#define LV_THEME_DEFAULT_FONT_TITLE         &lv_font_montserrat_14
+// #define LV_THEME_DEFAULT_FONT_SMALL         &lv_font_montserrat_14
+// #define LV_THEME_DEFAULT_FONT_NORMAL        &lv_font_montserrat_14
+// #define LV_THEME_DEFAULT_FONT_SUBTITLE      &lv_font_montserrat_14
+// #define LV_THEME_DEFAULT_FONT_TITLE         &lv_font_montserrat_14
+#define LV_THEME_DEFAULT_FONT_SMALL         &jetbrains_light_14
+#define LV_THEME_DEFAULT_FONT_NORMAL        &jetbrains_light_14
+#define LV_THEME_DEFAULT_FONT_SUBTITLE      &jetbrains_light_14
+#define LV_THEME_DEFAULT_FONT_TITLE         &jetbrains_light_14
 
 /*=================
  *  Text settings

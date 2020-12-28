@@ -19,6 +19,7 @@ extern "C"
 }
 #include "display.h"
 #include "menu_test.h"
+#include "Menu_Time.h"
 
 DigitalOut redLed(LED1);
 DigitalOut greenLed(LED2);
@@ -36,12 +37,19 @@ static void HeartbeatTask()
 {
    while(true)
    {
+      ds3231_time_t time;
+      rtc.get_time(&time);
+      ds3231_calendar_t date;
+      rtc.get_calendar(&date);
+      MenuTime_UpdateScreen(time.hours, time.minutes, time.seconds, date.month, date.day, date.year);
+
       greenLed = 1;
       ThisThread::sleep_for(50ms);
       // printf("Seconds: %lu\r\n", seconds);
 
       greenLed = 0;
       ThisThread::sleep_for(950ms);
+
    }
 }
 
@@ -127,8 +135,6 @@ int main()
 {
    printf("Starting...\r\n");
 
-   ThisThread::sleep_for(10s);
-
    spi.frequency(10000000);
 
    ds3231_cntl_stat_t rtcStatus;
@@ -148,9 +154,11 @@ int main()
    lcdBacklight = 1;
    Display_Initialize();
 
-   lv_scr_load(MenuTest_CreateScreen(Display_GetInputDevice()));
-   char msg[64] = "Menu";
-   MenuTest_ShowMenu(msg);
+   // lv_scr_load(MenuTest_CreateScreen(Display_GetInputDevice()));
+   // char msg[64] = "Menu";
+   // MenuTest_ShowMenu(msg);
+
+   lv_scr_load(MenuTime_CreateScreen(Display_GetInputDevice()));
 
    heartbeatThread.start(HeartbeatTask);
    InitRtcClockInput();
