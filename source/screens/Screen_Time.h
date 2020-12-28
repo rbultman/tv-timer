@@ -1,5 +1,5 @@
 /*
-    Menu_Time.h
+    Screen_Time.h
 
     A screen that just shows the time and date.
 
@@ -7,16 +7,16 @@
     License: MIT
 */
 
-#ifndef MENU_TIME_H
-#define MENU_TIME_H
+#ifndef SCREEN_TIME_H
+#define SCREEN_TIME_H
 
 #include "lvgl.h"
 #include "screen_class.h"
 
-class Menu_Time : public ScreenClass
+class Screen_Time : public ScreenClass
 {
     public:
-        Menu_Time() : timeLabel(NULL), dateLabel(NULL) {}
+        Screen_Time() : timeLabel(NULL), dateLabel(NULL) {}
         lv_obj_t *CreateScreen(lv_indev_t *pInputDevice);
         void UpdateScreen(
             uint8_t hours,
@@ -31,4 +31,4 @@ class Menu_Time : public ScreenClass
         lv_obj_t *dateLabel;
 };
 
-#endif // MENU_TIME_H
+#endif // SCREEN_TIME_H

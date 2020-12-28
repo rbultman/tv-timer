@@ -1,5 +1,5 @@
 /*
-    Menu_Time.cpp
+    Screen_Time.cpp
 
     A screen that just shows the time and date.
 
@@ -9,9 +9,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "Menu_Time.h"
+#include "Screen_Time.h"
 
-lv_obj_t *Menu_Time::CreateScreen(lv_indev_t *pInputDevice)
+lv_obj_t *Screen_Time::CreateScreen(lv_indev_t *pInputDevice)
 {
     this->ScreenClass::CreateScreen(pInputDevice);
 
@@ -36,7 +36,7 @@ lv_obj_t *Menu_Time::CreateScreen(lv_indev_t *pInputDevice)
     return scr;
 }
 
-void Menu_Time::UpdateScreen(
+void Screen_Time::UpdateScreen(
     uint8_t hours,
     uint8_t minutes,
     uint8_t seconds,
