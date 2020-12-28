@@ -16,7 +16,7 @@ class ScreenClass
 {
     public:
         ScreenClass() { scr  = NULL; pInputDevice = NULL;}
-        void Create(lv_indev_t *pInputDevice)
+        lv_obj_t * CreateScreen(lv_indev_t *pInputDevice)
         {
             this->pInputDevice = pInputDevice;
 
@@ -27,9 +27,11 @@ class ScreenClass
             // the main screen object
             scr = lv_obj_create(NULL, NULL);
             lv_obj_set_size(scr, LV_HOR_RES, LV_VER_RES);
+
+            return scr;
         }
 
-    private:
+    protected:
         lv_obj_t *scr;
         lv_indev_t *pInputDevice;
 };

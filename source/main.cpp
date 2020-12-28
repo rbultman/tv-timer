@@ -31,6 +31,8 @@ Ds3231 rtc(D14, D15);
 
 static volatile uint32_t seconds = 0;
 
+Menu_Time menu_time;
+
 void RtcClockInputInterrupt();
 static Thread heartbeatThread;
 static void HeartbeatTask()
@@ -41,7 +43,8 @@ static void HeartbeatTask()
       rtc.get_time(&time);
       ds3231_calendar_t date;
       rtc.get_calendar(&date);
-      MenuTime_UpdateScreen(time.hours, time.minutes, time.seconds, date.month, date.day, date.year);
+      // MenuTime_UpdateScreen(time.hours, time.minutes, time.seconds, date.month, date.day, date.year);
+      menu_time.UpdateScreen(time.hours, time.minutes, time.seconds, date.month, date.day, date.year);
 
       greenLed = 1;
       ThisThread::sleep_for(50ms);
@@ -158,7 +161,7 @@ int main()
    // char msg[64] = "Menu";
    // MenuTest_ShowMenu(msg);
 
-   lv_scr_load(MenuTime_CreateScreen(Display_GetInputDevice()));
+   lv_scr_load(menu_time.CreateScreen(Display_GetInputDevice()));
 
    heartbeatThread.start(HeartbeatTask);
    InitRtcClockInput();
