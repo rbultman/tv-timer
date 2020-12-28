@@ -1,5 +1,5 @@
 /*
-    Menu_Set.h
+    Screen_SetDate.h
 
     A screen to set the date.
 
@@ -7,9 +7,9 @@
     License: MIT
 */
 
-#include "Menu_SetDate.h"
+#include "Screen_SetDate.h"
 
-lv_obj_t *MenuSetDate_CreateScreen(lv_indev_t *pInputDevice)
+lv_obj_t * CreateScreen(lv_indev_t *pInputDevice)
 {
-    
+
 }
