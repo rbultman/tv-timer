@@ -102,26 +102,10 @@ lv_obj_t *Screen_SetDate::CreateScreen(lv_indev_t *pInputDevice)
     lv_cont_set_fit2(cont, LV_FIT_TIGHT, LV_FIT_NONE);
     lv_cont_set_layout(cont, LV_LAYOUT_ROW_MID);
 
-    static lv_style_t rollerStyle;
-    lv_style_init(&rollerStyle);
-    lv_style_set_text_color(&rollerStyle, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-    lv_style_set_bg_color(&rollerStyle, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-    lv_style_set_text_line_space(&rollerStyle, LV_STATE_DEFAULT, 1);
-    lv_style_set_text_sel_color(&rollerStyle, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-
-    lv_style_set_text_color(&rollerStyle, LV_STATE_FOCUSED, LV_COLOR_WHITE);
-    lv_style_set_bg_color(&rollerStyle, LV_STATE_FOCUSED, LV_COLOR_BLACK);
-    lv_style_set_text_line_space(&rollerStyle, LV_STATE_FOCUSED, 1);
-    lv_style_set_text_sel_color(&rollerStyle, LV_STATE_FOCUSED, LV_COLOR_WHITE);
-
-    lv_style_set_text_color(&rollerStyle, LV_STATE_EDITED, LV_COLOR_WHITE);
-    lv_style_set_bg_color(&rollerStyle, LV_STATE_EDITED, LV_COLOR_BLACK);
-    lv_style_set_text_line_space(&rollerStyle, LV_STATE_EDITED, 1);
-    lv_style_set_text_sel_color(&rollerStyle, LV_STATE_EDITED, LV_COLOR_WHITE);
-
     monthRoller = lv_roller_create(cont, NULL);
     lv_obj_add_style(monthRoller, LV_ROLLER_PART_BG, &rollerStyle);
     lv_obj_add_style(monthRoller, LV_ROLLER_PART_SELECTED, &rollerStyle);
+    lv_obj_add_style(monthRoller, LV_ROLLER_PART_SELECTED, &rollerSelectedStyle);
     lv_roller_set_auto_fit(monthRoller, true);
     lv_roller_set_options(monthRoller,
                           "Jan\n"
@@ -141,8 +125,6 @@ lv_obj_t *Screen_SetDate::CreateScreen(lv_indev_t *pInputDevice)
     lv_obj_set_event_cb(monthRoller, RollerEventHandler);
     lv_obj_set_user_data(monthRoller, this);
     lv_obj_align_origo(monthRoller, scr, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_style_local_border_width(monthRoller, LV_ROLLER_PART_SELECTED, LV_STATE_DEFAULT, 1);
-    lv_obj_set_style_local_border_color(monthRoller, LV_ROLLER_PART_SELECTED, LV_STATE_DEFAULT, LV_COLOR_BLACK);
 
     daySpinbox = lv_spinbox_create(cont, NULL);
     lv_obj_add_style(daySpinbox, LV_SPINBOX_PART_BG, &spinboxStyle);

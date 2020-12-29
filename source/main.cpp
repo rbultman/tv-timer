@@ -21,6 +21,7 @@ extern "C"
 #include "menu_test.h"
 #include "Screen_Time.h"
 #include "Screen_SetDate.h"
+#include "Screen_SetTime.h"
 
 DigitalOut redLed(LED1);
 DigitalOut greenLed(LED2);
@@ -34,6 +35,7 @@ static volatile uint32_t seconds = 0;
 
 Screen_Time screen_time;
 Screen_SetDate screen_setDate;
+Screen_SetTime screen_setTime;
 Menu_Test menu_test;
 
 void RtcClockInputInterrupt();
@@ -164,7 +166,8 @@ int main()
    // char msg[64] = "Menu";
    // menu_test.ShowMenu(msg);
 
-   lv_scr_load(screen_setDate.CreateScreen(Display_GetInputDevice()));
+   // lv_scr_load(screen_setDate.CreateScreen(Display_GetInputDevice()));
+   lv_scr_load(screen_setTime.CreateScreen(Display_GetInputDevice()));
 
    heartbeatThread.start(HeartbeatTask);
    InitRtcClockInput();

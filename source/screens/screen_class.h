@@ -25,6 +25,8 @@ class ScreenClass
         static lv_style_t menuButtonStyle;
         static lv_style_t dialogButtonStyle;
         static lv_style_t spinboxStyle;
+        static lv_style_t rollerStyle;
+        static lv_style_t rollerSelectedStyle;
         static bool stylesInitialized;
 };
 
