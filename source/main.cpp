@@ -20,6 +20,7 @@ extern "C"
 #include "display.h"
 #include "menu_test.h"
 #include "Screen_Time.h"
+#include "Screen_SetDate.h"
 
 DigitalOut redLed(LED1);
 DigitalOut greenLed(LED2);
@@ -32,6 +33,8 @@ Ds3231 rtc(D14, D15);
 static volatile uint32_t seconds = 0;
 
 Screen_Time screen_time;
+Screen_SetDate screen_setDate;
+Menu_Test menu_test;
 
 void RtcClockInputInterrupt();
 static Thread heartbeatThread;
@@ -157,11 +160,11 @@ int main()
    lcdBacklight = 1;
    Display_Initialize();
 
-   // lv_scr_load(MenuTest_CreateScreen(Display_GetInputDevice()));
+   // lv_scr_load(menu_test.CreateScreen(Display_GetInputDevice()));
    // char msg[64] = "Menu";
-   // MenuTest_ShowMenu(msg);
+   // menu_test.ShowMenu(msg);
 
-   lv_scr_load(screen_time.CreateScreen(Display_GetInputDevice()));
+   lv_scr_load(screen_setDate.CreateScreen(Display_GetInputDevice()));
 
    heartbeatThread.start(HeartbeatTask);
    InitRtcClockInput();

@@ -20,7 +20,6 @@ class Menu_Test : public ScreenClass
     private:
         lv_obj_t *label;
         lv_group_t *group;
-        lv_style_t menuButtonStyle;
 };
 
 #endif // MENU_TEST_H

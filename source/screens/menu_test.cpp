@@ -66,22 +66,6 @@ void Menu_Test::ShowMenu(char *pText)
     lv_obj_set_size(label, LV_HOR_RES, LV_VER_RES); /*Set its size*/
     lv_label_set_text(label, pText);                /*Set the labels text*/
 
-    // button default style
-    lv_style_init(&menuButtonStyle);
-    lv_style_set_border_width(&menuButtonStyle, LV_STATE_DEFAULT, 1);
-    lv_style_set_border_color(&menuButtonStyle, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-    lv_style_set_bg_color(&menuButtonStyle, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-    lv_style_set_text_color(&menuButtonStyle, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-    lv_style_set_radius(&menuButtonStyle, LV_STATE_DEFAULT, 0);
-    lv_style_set_text_font(&menuButtonStyle, LV_STATE_DEFAULT, &jetbrains_light_14);
-    // focused style
-    lv_style_set_border_width(&menuButtonStyle, LV_STATE_FOCUSED, 1);
-    lv_style_set_border_color(&menuButtonStyle, LV_STATE_FOCUSED, LV_COLOR_WHITE);
-    lv_style_set_bg_color(&menuButtonStyle, LV_STATE_FOCUSED, LV_COLOR_BLACK);
-    lv_style_set_text_color(&menuButtonStyle, LV_STATE_FOCUSED, LV_COLOR_WHITE);
-    lv_style_set_radius(&menuButtonStyle, LV_STATE_FOCUSED, 0);
-    lv_style_set_text_font(&menuButtonStyle, LV_STATE_FOCUSED, &jetbrains_light_14);
-
     lv_obj_t *btn1 = lv_btn_create(lv_scr_act(), NULL);
     lv_obj_add_style(btn1, LV_BTN_PART_MAIN, &menuButtonStyle);
     lv_obj_set_width(btn1, LV_HOR_RES);
@@ -111,25 +95,4 @@ void Menu_Test::ShowMenu(char *pText)
     lv_group_add_obj(group, btn2);
     lv_group_add_obj(group, btn3);
     lv_indev_set_group(pInputDevice, group);
-
-    printf("Button layout: %d\r\n", lv_btn_get_layout(btn1));
-    printf("Button height: %d\r\n", lv_obj_get_height(btn1));
-    printf("Button width: %d\r\n", lv_obj_get_width(btn1));
-    printf("Label height: %d\r\n", lv_obj_get_height(btn1label));
-    printf("Label width: %d\r\n", lv_obj_get_width(btn1label));
-    lv_color_t color = lv_obj_get_style_text_color(btn1label, LV_LABEL_PART_MAIN);
-    printf("Label text color: %u\r\n", color.full);
-    color = lv_obj_get_style_bg_color(btn1label, LV_LABEL_PART_MAIN);
-    printf("Label background color: %u\r\n", color.full);
-    color = lv_obj_get_style_border_color(btn1, LV_BTN_PART_MAIN);
-    printf("Button border color: %u\r\n", color.full);
-    color = LV_COLOR_WHITE;
-    printf("White color: %u\r\n", color.full);
-    color = LV_COLOR_BLACK;
-    printf("Black color: %u\r\n", color.full);
-    lv_style_int_t radius = lv_obj_get_style_radius(btn1, LV_BTN_PART_MAIN);
-    printf("Button radius: %d\r\n", radius);
-    printf("Label 1 pointer: %p\r\n", btn1label);
-    printf("Label 2 pointer: %p\r\n", btn2label);
-    printf("Label 3 pointer: %p\r\n", btn3label);
 }
