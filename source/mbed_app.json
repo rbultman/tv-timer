@@ -3,7 +3,12 @@
     "target_overrides": {
         "*": {
             "platform.stdio-baud-rate": 115200,
-            "platform.stdio-convert-newlines": true
+            "platform.stdio-convert-newlines": true,
+            "sd.SPI_MOSI" : "P8_5",
+            "sd.SPI_MISO" : "P8_6",
+            "sd.SPI_CLK"  : "P8_3",
+            "sd.SPI_CS"   : "P8_4",
+            "target.components_add" : ["SD"]
         }
     }
 }

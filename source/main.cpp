@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include "mbed.h"
 #include "io_ports.h"
 #include "lvgl.h"
@@ -22,6 +23,9 @@ extern "C"
 #include "Screen_Time.h"
 #include "Screen_SetDate.h"
 #include "Screen_SetTime.h"
+#include "SDBlockDevice.h"
+#include "FATFileSystem.h"
+#include "rtcClock32khz.h"
 
 DigitalOut redLed(LED1);
 DigitalOut greenLed(LED2);
@@ -35,10 +39,10 @@ static volatile uint32_t seconds = 0;
 
 Screen_Time screen_time;
 Screen_SetDate screen_setDate;
+Screen_SetDate screen_setDateInitial;
 Screen_SetTime screen_setTime;
-Menu_Test menu_test;
+//Menu_Test menu_test;
 
-void RtcClockInputInterrupt();
 static Thread heartbeatThread;
 static void HeartbeatTask()
 {
@@ -48,57 +52,20 @@ static void HeartbeatTask()
       rtc.get_time(&time);
       ds3231_calendar_t date;
       rtc.get_calendar(&date);
-      // MenuTime_UpdateScreen(time.hours, time.minutes, time.seconds, date.month, date.day, date.year);
-      screen_time.UpdateScreen(time.hours, time.minutes, time.seconds, date.month, date.day, date.year);
+      screen_time.UpdateScreen(time.hours, time.minutes, time.seconds, date.month, date.date, date.year);
 
       greenLed = 1;
       ThisThread::sleep_for(50ms);
-      // printf("Seconds: %lu\r\n", seconds);
 
       greenLed = 0;
       ThisThread::sleep_for(950ms);
-
    }
 }
 
-void RtcClockInputInterrupt()
+void RtcClock32khzInputInterruptHandler()
 {
    MTU2.TSR_2 = MTU2.TSR_2 & ~MTU2_TSR_n_TGFA;
    seconds++;
-}
-
-DigitalIn rtcClockInput(P1_1, PullUp);
-void InitRtcClockInput()
-{
-   // Enable clock to MTU2
-   CPG.STBCR3 = CPG.STBCR3 & ~CPG_STBCR3_BIT_MSTP33;
-   // Set Channel 2 TCNT input to TCLKC, reset by TGRA
-   MTU2.TCR_2 = 0x26;
-   // Reset TGRA after 1 second
-   MTU2.TGRA_2 = 32768;
-   // use alternate pin function
-   GPIO.PIPC1 = GPIO.PIPC1 | 0x0002;
-   // set P1_1 to alt mode 3
-   GPIO.PFCAE1 = GPIO.PFCAE1 & ~0x0002;
-   GPIO.PFCE1 = GPIO.PFCE1 | 0x0002;
-   GPIO.PFC1 = GPIO.PFC1 & ~0x0002;
-   GPIO.PMC1 = GPIO.PMC1 | 0x0002;
-   // Install the interrupt handler
-   uint32_t retval = InterruptHandlerRegister(TGI2A_IRQn, RtcClockInputInterrupt);
-   if (retval == 0)
-   {
-      puts("IRQ for RTC clock successfully installed.");
-   }
-   else
-   {
-      puts("ERROR installing IRQ for RTC clock.");
-   }
-   // Enable the interrupt in MTU2
-   MTU2.TIER_2 = MTU2.TIER_2 | MTU2_TIER_n_TGIEA;
-   // Enable the IRQ at the core
-   IRQ_Enable(TGI2A_IRQn);
-   // start the timer
-   MTU2.TSTR = MTU2.TSTR | 0x04;
 }
 
 static void InitClock()
@@ -106,17 +73,48 @@ static void InitClock()
    ds3231_time_t rtc_time;
    ds3231_calendar_t rtc_calendar;
    ds3231_cntl_stat_t rtc_control_status = {0, 0x08};
+   struct tm time;
+   struct tm *pTimeConverted;
+   time_t rawTime;
+   uint8_t hours;
+   uint8_t minutes;
+   uint8_t amPm;
+   uint8_t month;
+   uint8_t day;
+   uint8_t year;
 
    rtc.set_cntl_stat_reg(rtc_control_status);
    rtc_calendar.day = 6;
-   rtc_calendar.date = 25;
-   rtc_calendar.month = 12;
-   rtc_calendar.year = 20;
    rtc_time.mode = 1; // 12 hour mode
-   rtc_time.am_pm = 1;
-   rtc_time.hours = 1;
-   rtc_time.minutes = 14;
+
+   screen_setDateInitial.GetDate(&month, &day, &year);
+   screen_setTime.GetTime(&hours, &minutes, &amPm);
+
+   rtc_calendar.date = day;
+   rtc_calendar.month = month + 1;
+   rtc_calendar.year = year;
+   rtc_time.hours = hours;
+   rtc_time.minutes = minutes;
    rtc_time.seconds = 0;
+   rtc_time.am_pm = amPm;
+
+   time.tm_year = year + 100;
+   time.tm_mon = month;
+   time.tm_mday = day;
+
+   time.tm_hour = hours;
+   if (amPm)
+   {
+      time.tm_hour = 24 - hours;
+   }
+   
+   time.tm_min = minutes;
+   time.tm_sec = 0;
+   
+   rawTime = mktime(&time);
+   pTimeConverted = localtime(&rawTime);
+
+   rtc_calendar.day = pTimeConverted->tm_wday + 1;
 
    //Set the time, uses inverted logic for return value
    if (rtc.set_time(rtc_time))
@@ -139,11 +137,68 @@ static void InitClock()
    }
 }
 
+void SetTimeButtonCallback(uint8_t whichButton)
+{
+   uint8_t hours;
+   uint8_t minutes;
+   uint8_t amPm;
+
+   screen_setTime.GetTime(&hours, &minutes, &amPm);
+
+   if (whichButton == Screen_NextButtonPressed)
+   {
+      puts("Next button pressed.");
+      InitClock();
+      screen_time.LoadScreen();
+   }
+   else
+   {
+      puts("Previous button pressed.");
+      screen_setDateInitial.LoadScreen();
+   }
+
+   printf("Time is now: %d:%02d %s\r\n", hours, minutes, amPm ? "PM" : "AM");
+}
+
+void SetDateButtonCallback(uint8_t whichButton)
+{
+   uint8_t month;
+   uint8_t day;
+   uint8_t year;
+
+   screen_setDateInitial.GetDate(&month, &day, &year);
+
+   if (whichButton == Screen_NextButtonPressed)
+   {
+      screen_setTime.LoadScreen();
+   }
+   else
+   {
+      puts("Previous button pressed.");
+   }
+
+   printf("Date is now: %d/%d/%d\r\n", month, day, year + 2000);
+}
+
 int main()
 {
    printf("Starting...\r\n");
 
    spi.frequency(10000000);
+
+   lcdBacklight = 1;
+
+   Display_Initialize();
+
+   screen_time.CreateScreen(Display_GetInputDevice(), false, false);
+
+   screen_setDateInitial.CreateScreen(Display_GetInputDevice(), true, false);
+   screen_setDateInitial.RegisterButtonPressedCallback(SetDateButtonCallback);
+   screen_setDateInitial.SetDate(11, 18, 22);
+
+   screen_setTime.CreateScreen(Display_GetInputDevice(), true, true);
+   screen_setTime.RegisterButtonPressedCallback(SetTimeButtonCallback);
+   screen_setTime.SetTime(12, 31, 0);
 
    ds3231_cntl_stat_t rtcStatus;
    rtc.get_cntl_stat_reg(&rtcStatus);
@@ -151,26 +206,21 @@ int main()
    printf("RTC status: %d\r\n", rtcStatus.status);
    if (rtcStatus.status & OSF)
    {
-      puts("RTC oscillator stopped...configuring.");
-      InitClock();
+      puts("RTC oscillator stopped, need to get the time from the user");
+      screen_setDateInitial.LoadScreen();
    }
    else
    {
       puts("RTC oscillator already configured.");
+      screen_time.LoadScreen();
    }
-
-   lcdBacklight = 1;
-   Display_Initialize();
 
    // lv_scr_load(menu_test.CreateScreen(Display_GetInputDevice()));
    // char msg[64] = "Menu";
    // menu_test.ShowMenu(msg);
 
-   // lv_scr_load(screen_setDate.CreateScreen(Display_GetInputDevice()));
-   lv_scr_load(screen_setTime.CreateScreen(Display_GetInputDevice()));
-
    heartbeatThread.start(HeartbeatTask);
-   InitRtcClockInput();
+   InitRtcClock32khzInput(RtcClock32khzInputInterruptHandler);
 
    while (true)
    {

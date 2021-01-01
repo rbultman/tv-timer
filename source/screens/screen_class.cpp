@@ -7,6 +7,7 @@
     License: MIT
 */
 
+#include <stdio.h>
 #include "screen_class.h"
 
 lv_style_t ScreenClass::menuButtonStyle;
@@ -15,16 +16,20 @@ lv_style_t ScreenClass::spinboxStyle;
 lv_style_t ScreenClass::rollerStyle;
 lv_style_t ScreenClass::rollerSelectedStyle;
 bool ScreenClass::stylesInitialized = false;
+lv_indev_t * ScreenClass::pInputDevice = NULL;
 
 ScreenClass::ScreenClass()
 {
     scr = NULL;
     pInputDevice = NULL;
+    buttonPressedCallback = NULL;
 }
 
-lv_obj_t *ScreenClass::CreateScreen(lv_indev_t *pInputDevice)
+lv_obj_t *ScreenClass::CreateScreen(lv_indev_t *_pInputDevice, bool hasNextButton, bool hasPreviousButton)
 {
-    this->pInputDevice = pInputDevice;
+    pInputDevice = _pInputDevice;
+    this->hasNextButton = hasNextButton;
+    this->hasPreviousButton = hasPreviousButton;
 
     InitializeStyles();
 
@@ -34,9 +39,47 @@ lv_obj_t *ScreenClass::CreateScreen(lv_indev_t *pInputDevice)
     }
     // the main screen object
     scr = lv_obj_create(NULL, NULL);
+    lv_obj_set_user_data(scr, this);
+
     lv_obj_set_size(scr, LV_HOR_RES, LV_VER_RES);
 
+    if (hasNextButton)
+    {
+        nextButton = lv_btn_create(scr, NULL);
+        lv_obj_set_event_cb(nextButton, NextButtonEventHandler);
+        lv_obj_set_width(nextButton, 60);
+        lv_obj_add_style(nextButton, LV_BTN_PART_MAIN, &dialogButtonStyle);
+        lv_obj_set_user_data(nextButton, this);
+        lv_obj_set_pos(nextButton,
+                       LV_HOR_RES - lv_obj_get_width(nextButton),
+                       LV_VER_RES - lv_obj_get_height(nextButton));
+
+        nextLabel = lv_label_create(nextButton, NULL);
+        lv_label_set_text(nextLabel, "Next");
+    }
+
+    if (hasPreviousButton)
+    {
+        previousButton = lv_btn_create(scr, NULL);
+        lv_obj_set_event_cb(previousButton, PreviousButtonEventHandler);
+        lv_obj_set_width(previousButton, 60);
+        lv_obj_add_style(previousButton, LV_BTN_PART_MAIN, &dialogButtonStyle);
+        lv_obj_set_user_data(previousButton, this);
+        lv_obj_set_pos(previousButton,
+                       0,
+                       LV_VER_RES - lv_obj_get_height(previousButton));
+
+        previousLabel = lv_label_create(previousButton, NULL);
+        lv_label_set_text(previousLabel, "Prev");
+    }
+
     return scr;
+}
+
+void ScreenClass::LoadScreen()
+{
+    lv_scr_load(scr);
+    lv_indev_set_group(pInputDevice, group);
 }
 
 void ScreenClass::InitializeStyles()
@@ -106,5 +149,58 @@ void ScreenClass::InitializeStyles()
         lv_style_set_border_color(&rollerSelectedStyle, LV_STATE_DEFAULT, LV_COLOR_BLACK);
 
         stylesInitialized = true;
+    }
+}
+
+void ScreenClass::RegisterButtonPressedCallback(ButtonPressedCallback cb)
+{
+    buttonPressedCallback = cb;
+}
+
+void ScreenClass::NextButtonEventHandler(lv_obj_t *obj, lv_event_t event)
+{
+    ScreenClass *pScreen = (ScreenClass *)lv_obj_get_user_data(obj);
+
+    switch (event)
+    {
+    case LV_EVENT_FOCUSED:
+        puts("Button received focus, exiting editing mode.");
+        lv_obj_set_style_local_text_color(pScreen->nextLabel, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+        break;
+    case LV_EVENT_DEFOCUSED:
+        printf("Button defocused %p\r\n", obj);
+        lv_obj_set_style_local_text_color(pScreen->nextLabel, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+        break;
+    case LV_EVENT_SHORT_CLICKED:
+        printf("Button short click\n");
+        if (pScreen->buttonPressedCallback)
+        {
+            pScreen->buttonPressedCallback(Screen_NextButtonPressed);
+        }
+        break;
+    }
+}
+
+void ScreenClass::PreviousButtonEventHandler(lv_obj_t *obj, lv_event_t event)
+{
+    ScreenClass *pScreen = (ScreenClass *)lv_obj_get_user_data(obj);
+
+    switch (event)
+    {
+    case LV_EVENT_FOCUSED:
+        puts("Previous button received focus, exiting editing mode.");
+        lv_obj_set_style_local_text_color(pScreen->previousLabel, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+        break;
+    case LV_EVENT_DEFOCUSED:
+        printf("Previous button defocused %p\r\n", obj);
+        lv_obj_set_style_local_text_color(pScreen->previousLabel, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+        break;
+    case LV_EVENT_SHORT_CLICKED:
+        printf("Previous button short click\n");
+        if (pScreen->buttonPressedCallback)
+        {
+            pScreen->buttonPressedCallback(Screen_PreviousButtonPressed);
+        }
+        break;
     }
 }

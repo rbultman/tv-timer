@@ -17,7 +17,7 @@ class Screen_Time : public ScreenClass
 {
     public:
         Screen_Time() : timeLabel(NULL), dateLabel(NULL) {}
-        lv_obj_t *CreateScreen(lv_indev_t *pInputDevice);
+        lv_obj_t *CreateScreen(lv_indev_t *pInputDevice, bool hasNextButton = false, bool hasPreviousButton = false);
         void UpdateScreen(
             uint8_t hours,
             uint8_t minutes,

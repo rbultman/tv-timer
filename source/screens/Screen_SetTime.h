@@ -16,7 +16,9 @@
 class Screen_SetTime : public ScreenClass
 {
 public:
-    lv_obj_t *CreateScreen(lv_indev_t *pInputDevice);
+    lv_obj_t *CreateScreen(lv_indev_t *pInputDevice, bool hasNextButton = false, bool hasPreviousButton = false);
+    void SetTime(uint8_t hours, uint8_t minutes, uint8_t amPm);
+    void GetTime(uint8_t *hours, uint8_t *minutes, uint8_t *amPm);
 
 private:
     static void SpinboxEventHandler(lv_obj_t *obj, lv_event_t event);
@@ -26,12 +28,9 @@ private:
     lv_obj_t *hourSpinbox;
     lv_obj_t *minuteSpinbox;
     lv_obj_t *amPmRoller;
-    lv_obj_t *acceptButton;
-    lv_obj_t *acceptLabel;
-    lv_obj_t *previousButton;
-    lv_obj_t *previousLabel;
-    lv_group_t *group;
-    lv_style_t style;
+    uint8_t hours;
+    uint8_t minutes;
+    uint8_t amPm;
 };
 
 #endif // SCREEN_SET_TIME_H

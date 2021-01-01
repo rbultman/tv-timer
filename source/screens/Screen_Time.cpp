@@ -11,9 +11,9 @@
 #include <stdlib.h>
 #include "Screen_Time.h"
 
-lv_obj_t *Screen_Time::CreateScreen(lv_indev_t *pInputDevice)
+lv_obj_t *Screen_Time::CreateScreen(lv_indev_t *pInputDevice, bool hasNextButton, bool hasPreviousButton)
 {
-    this->ScreenClass::CreateScreen(pInputDevice);
+    this->ScreenClass::CreateScreen(pInputDevice, hasNextButton, hasPreviousButton);
 
     lv_obj_t *cont;
 
