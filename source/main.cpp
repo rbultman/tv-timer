@@ -19,13 +19,12 @@ extern "C"
    #include "irq_ctrl.h"
 }
 #include "display.h"
-#include "menu_test.h"
+#include "rtcClock32khz.h"
 #include "Screen_Time.h"
 #include "Screen_SetDate.h"
 #include "Screen_SetTime.h"
-#include "SDBlockDevice.h"
-#include "FATFileSystem.h"
-#include "rtcClock32khz.h"
+#include "Screen_Start.h"
+#include "Screen_Timer.h"
 
 DigitalOut redLed(LED1);
 DigitalOut greenLed(LED2);
@@ -36,12 +35,14 @@ SPI spi(D11, NC, D13, D10);
 Ds3231 rtc(D14, D15);
 
 static volatile uint32_t seconds = 0;
+static bool timeIsInitialized = false;
 
-Screen_Time screen_time;
-Screen_SetDate screen_setDate;
-Screen_SetDate screen_setDateInitial;
-Screen_SetTime screen_setTime;
-//Menu_Test menu_test;
+static Screen_Time screen_time;
+static Screen_SetDate screen_setDate;
+static Screen_SetDate screen_setDateInitial;
+static Screen_SetTime screen_setTime;
+static Screen_Start screen_start;
+static Screen_Timer screen_timer;
 
 static Thread heartbeatThread;
 static void HeartbeatTask()
@@ -52,7 +53,18 @@ static void HeartbeatTask()
       rtc.get_time(&time);
       ds3231_calendar_t date;
       rtc.get_calendar(&date);
-      screen_time.UpdateScreen(time.hours, time.minutes, time.seconds, date.month, date.date, date.year);
+      screen_time.UpdateScreen(
+         time.hours, 
+         time.minutes, 
+         time.seconds, 
+         time.am_pm,
+         date.month, 
+         date.date, 
+         date.year);
+      time_t currentEpoch = rtc.get_epoch();
+      ds3231_alrm_t alarm1;
+      rtc.get_alarm(&alarm1, 1);
+      screen_timer.UpdateScreen(currentEpoch, alarm1);
 
       greenLed = 1;
       ThisThread::sleep_for(50ms);
@@ -87,7 +99,14 @@ static void InitClock()
    rtc_calendar.day = 6;
    rtc_time.mode = 1; // 12 hour mode
 
-   screen_setDateInitial.GetDate(&month, &day, &year);
+   if (timeIsInitialized)
+   {
+      screen_setDate.GetDate(&month, &day, &year);
+   }
+   else
+   {
+      screen_setDateInitial.GetDate(&month, &day, &year);
+   }
    screen_setTime.GetTime(&hours, &minutes, &amPm);
 
    rtc_calendar.date = day;
@@ -139,45 +158,83 @@ static void InitClock()
 
 void SetTimeButtonCallback(uint8_t whichButton)
 {
-   uint8_t hours;
-   uint8_t minutes;
-   uint8_t amPm;
-
-   screen_setTime.GetTime(&hours, &minutes, &amPm);
-
    if (whichButton == Screen_NextButtonPressed)
    {
-      puts("Next button pressed.");
       InitClock();
+      timeIsInitialized = true;
       screen_time.LoadScreen();
    }
    else
    {
-      puts("Previous button pressed.");
-      screen_setDateInitial.LoadScreen();
+      if (timeIsInitialized)
+      {
+         screen_setDate.LoadScreen();
+      }
+      else
+      {
+         screen_setDateInitial.LoadScreen();
+      }
    }
-
-   printf("Time is now: %d:%02d %s\r\n", hours, minutes, amPm ? "PM" : "AM");
 }
 
 void SetDateButtonCallback(uint8_t whichButton)
 {
-   uint8_t month;
-   uint8_t day;
-   uint8_t year;
-
-   screen_setDateInitial.GetDate(&month, &day, &year);
+   ds3231_time_t time;
 
    if (whichButton == Screen_NextButtonPressed)
    {
+      rtc.get_time(&time);
+      screen_setTime.SetTime(time.hours, time.minutes, time.am_pm);
       screen_setTime.LoadScreen();
    }
    else
    {
-      puts("Previous button pressed.");
+      screen_time.LoadScreen();
    }
+}
 
-   printf("Date is now: %d/%d/%d\r\n", month, day, year + 2000);
+void TimeScreenCallback (uint8_t whichButton)
+{
+   screen_start.LoadScreen();
+}
+
+void TimerScreenCallback(uint8_t whichButton)
+{
+}
+
+void StartScreenCallback(uint8_t whichButton)
+{
+   ds3231_calendar_t date;
+   time_t t;
+   struct tm ts;
+   ds3231_alrm_t a;
+   
+   switch (whichButton)
+   {
+      case Screen_PreviousButtonPressed:
+         screen_time.LoadScreen();
+         break;
+      case Screen_Menu1Pressed:
+         t = rtc.get_epoch() + 7200;
+         ts = *localtime(&t);
+         a.date = ts.tm_mday;
+         a.hours = ts.tm_hour;
+         a.minutes = ts.tm_min;
+         a.seconds = ts.tm_sec;
+         a.dy_dt = 0; 
+         a.am1 = a.am2 = a.am3 = a.am4 = 0;
+         a.mode = 0;
+         a.day = ts.tm_wday + 1;
+         rtc.set_alarm(a, 1);
+         screen_timer.LoadScreen();
+         break;
+      case Screen_Menu2Pressed:
+         puts("Settings button pressed.");
+         rtc.get_calendar(&date);
+         screen_setDate.SetDate(date.month-1, date.date, date.year);
+         screen_setDate.LoadScreen();
+         break;
+      }
 }
 
 int main()
@@ -191,10 +248,21 @@ int main()
    Display_Initialize();
 
    screen_time.CreateScreen(Display_GetInputDevice(), false, false);
+   screen_time.RegisterButtonPressedCallback(TimeScreenCallback);
+
+   screen_timer.CreateScreen(Display_GetInputDevice(), false, false);
+   screen_timer.RegisterButtonPressedCallback(TimerScreenCallback);
+
+   screen_start.CreateScreen(Display_GetInputDevice());
+   screen_start.RegisterButtonPressedCallback(StartScreenCallback);
 
    screen_setDateInitial.CreateScreen(Display_GetInputDevice(), true, false);
    screen_setDateInitial.RegisterButtonPressedCallback(SetDateButtonCallback);
    screen_setDateInitial.SetDate(11, 18, 22);
+
+   screen_setDate.CreateScreen(Display_GetInputDevice(), true, true);
+   screen_setDate.RegisterButtonPressedCallback(SetDateButtonCallback);
+   screen_setDate.SetDate(11, 18, 22);
 
    screen_setTime.CreateScreen(Display_GetInputDevice(), true, true);
    screen_setTime.RegisterButtonPressedCallback(SetTimeButtonCallback);
@@ -212,12 +280,9 @@ int main()
    else
    {
       puts("RTC oscillator already configured.");
+      timeIsInitialized = true;
       screen_time.LoadScreen();
    }
-
-   // lv_scr_load(menu_test.CreateScreen(Display_GetInputDevice()));
-   // char msg[64] = "Menu";
-   // menu_test.ShowMenu(msg);
 
    heartbeatThread.start(HeartbeatTask);
    InitRtcClock32khzInput(RtcClock32khzInputInterruptHandler);

@@ -59,8 +59,6 @@ lv_obj_t *Screen_SetTime::CreateScreen(lv_indev_t *pInputDevice, bool hasNextBut
 {
     this->ScreenClass::CreateScreen(pInputDevice, hasNextButton, hasPreviousButton);
 
-    puts("Creating set time screen");
-
     lv_obj_t *header = lv_label_create(scr, NULL);
     lv_label_set_text(header, "Set Time");
     lv_obj_align(header, scr, LV_ALIGN_IN_TOP_MID, 0, 0);

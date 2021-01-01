@@ -164,15 +164,12 @@ void ScreenClass::NextButtonEventHandler(lv_obj_t *obj, lv_event_t event)
     switch (event)
     {
     case LV_EVENT_FOCUSED:
-        puts("Button received focus, exiting editing mode.");
         lv_obj_set_style_local_text_color(pScreen->nextLabel, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
         break;
     case LV_EVENT_DEFOCUSED:
-        printf("Button defocused %p\r\n", obj);
         lv_obj_set_style_local_text_color(pScreen->nextLabel, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
         break;
     case LV_EVENT_SHORT_CLICKED:
-        printf("Button short click\n");
         if (pScreen->buttonPressedCallback)
         {
             pScreen->buttonPressedCallback(Screen_NextButtonPressed);
@@ -188,15 +185,12 @@ void ScreenClass::PreviousButtonEventHandler(lv_obj_t *obj, lv_event_t event)
     switch (event)
     {
     case LV_EVENT_FOCUSED:
-        puts("Previous button received focus, exiting editing mode.");
         lv_obj_set_style_local_text_color(pScreen->previousLabel, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
         break;
     case LV_EVENT_DEFOCUSED:
-        printf("Previous button defocused %p\r\n", obj);
         lv_obj_set_style_local_text_color(pScreen->previousLabel, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
         break;
     case LV_EVENT_SHORT_CLICKED:
-        printf("Previous button short click\n");
         if (pScreen->buttonPressedCallback)
         {
             pScreen->buttonPressedCallback(Screen_PreviousButtonPressed);

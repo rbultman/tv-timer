@@ -335,6 +335,7 @@ uint16_t Ds3231::set_alarm(ds3231_alrm_t alarm, bool one_r_two)
        ((alarm.day < 1) || (alarm.day > 7)) || 
        ((alarm.date < 1) || (alarm.date > 31)))
     {
+        puts("ERROR: alarm parameters out of range.");
         return(1);
     }
     else

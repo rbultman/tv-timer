@@ -12,10 +12,12 @@
 
 #include "lvgl.h"
 
-enum 
+enum
 {
     Screen_PreviousButtonPressed,
     Screen_NextButtonPressed,
+    Screen_Menu1Pressed,
+    Screen_Menu2Pressed,
 };
 
 // Define callback functions

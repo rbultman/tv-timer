@@ -11,6 +11,21 @@
 #include <stdlib.h>
 #include "Screen_Time.h"
 
+void Screen_Time::EventHandler(lv_obj_t *obj, lv_event_t event)
+{
+    Screen_Time *pScreen = (Screen_Time *)lv_obj_get_user_data(obj);
+
+    switch (event)
+    {
+    case LV_EVENT_SHORT_CLICKED:
+        if (pScreen->buttonPressedCallback)
+        {
+            pScreen->buttonPressedCallback(Screen_Menu1Pressed);
+        }
+        break;
+    }
+}
+
 lv_obj_t *Screen_Time::CreateScreen(lv_indev_t *pInputDevice, bool hasNextButton, bool hasPreviousButton)
 {
     this->ScreenClass::CreateScreen(pInputDevice, hasNextButton, hasPreviousButton);
@@ -24,6 +39,8 @@ lv_obj_t *Screen_Time::CreateScreen(lv_indev_t *pInputDevice, bool hasNextButton
     lv_obj_align_origo(cont, NULL, LV_ALIGN_CENTER, 0, 0); /*This parametrs will be sued when realigned*/
     lv_cont_set_fit(cont, LV_FIT_TIGHT);
     lv_cont_set_layout(cont, LV_LAYOUT_COLUMN_MID);
+    lv_obj_set_event_cb(cont, EventHandler);
+    lv_obj_set_user_data(cont, this);
 
     timeLabel = lv_label_create(cont, NULL); /*Create a label*/
     lv_label_set_text(timeLabel, "TIME");    /*Set the labels text*/
@@ -31,7 +48,8 @@ lv_obj_t *Screen_Time::CreateScreen(lv_indev_t *pInputDevice, bool hasNextButton
     dateLabel = lv_label_create(cont, timeLabel); /*Create a label*/
     lv_label_set_text(dateLabel, "DATE");         /*Set the labels text*/
 
-    printf("Returning from create screen and scr is %p\r\n", scr);
+    group = lv_group_create();
+    lv_group_add_obj(group, cont);
 
     return scr;
 }
@@ -40,6 +58,7 @@ void Screen_Time::UpdateScreen(
     uint8_t hours,
     uint8_t minutes,
     uint8_t seconds,
+    uint8_t amPm,
     uint8_t month,
     uint8_t day,
     uint8_t year)
@@ -50,7 +69,7 @@ void Screen_Time::UpdateScreen(
     {
         if (timeLabel)
         {
-            sprintf(msg, "%d:%02d:%02d", hours, minutes, seconds);
+            sprintf(msg, "%d:%02d %s", hours, minutes, amPm ? "PM" : "AM");
             lv_label_set_text(timeLabel, msg);
         }
         else

@@ -15,11 +15,10 @@ class Menu_Test : public ScreenClass
 {
     public:
         lv_obj_t *CreateScreen(lv_indev_t *pInputDevice);
-        void ShowMenu(char *pText);
 
     private:
+        static void event_handler(lv_obj_t *obj, lv_event_t event);
         lv_obj_t *label;
-        lv_group_t *group;
 };
 
 #endif // MENU_TEST_H

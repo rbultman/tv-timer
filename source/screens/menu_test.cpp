@@ -15,6 +15,40 @@ lv_obj_t *Menu_Test::CreateScreen(lv_indev_t *pInputDevice)
 {
     this->ScreenClass::CreateScreen(pInputDevice);
 
+    label = lv_label_create(scr, NULL);             /*Create a label*/
+    lv_obj_set_pos(label, 0, 0);                    /*Set its position*/
+    lv_obj_set_size(label, LV_HOR_RES, LV_VER_RES); /*Set its size*/
+    lv_label_set_text(label, "Menu");                /*Set the labels text*/
+
+    lv_obj_t *btn1 = lv_btn_create(scr, NULL);
+    lv_obj_add_style(btn1, LV_BTN_PART_MAIN, &menuButtonStyle);
+    lv_obj_set_width(btn1, LV_HOR_RES);
+    lv_obj_set_event_cb(btn1, event_handler);
+    lv_obj_align(btn1, label, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
+
+    lv_obj_t *btn1label = lv_label_create(btn1, NULL);
+    lv_label_set_text(btn1label, "Button 1");
+    lv_obj_set_user_data(btn1, btn1label);
+
+    lv_obj_t *btn2 = lv_btn_create(scr, btn1);
+    lv_obj_align(btn2, btn1, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
+
+    lv_obj_t *btn2label = lv_label_create(btn2, btn1label);
+    lv_label_set_text(btn2label, "Button 2");
+    lv_obj_set_user_data(btn2, btn2label);
+
+    lv_obj_t *btn3 = lv_btn_create(scr, btn1);
+    lv_obj_align(btn3, btn2, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
+
+    lv_obj_t *btn3label = lv_label_create(btn3, btn1label);
+    lv_label_set_text(btn3label, "Button 3");
+    lv_obj_set_user_data(btn3, btn3label);
+
+    group = lv_group_create();
+    lv_group_add_obj(group, btn1);
+    lv_group_add_obj(group, btn2);
+    lv_group_add_obj(group, btn3);
+
     return scr;
 }
 
@@ -57,42 +91,4 @@ static void event_handler(lv_obj_t *obj, lv_event_t event)
     default:
         printf("Unhandled event %d for object %p\r\n", event, obj);
     }
-}
-
-void Menu_Test::ShowMenu(char *pText)
-{
-    label = lv_label_create(lv_scr_act(), NULL);    /*Create a label*/
-    lv_obj_set_pos(label, 0, 0);                    /*Set its position*/
-    lv_obj_set_size(label, LV_HOR_RES, LV_VER_RES); /*Set its size*/
-    lv_label_set_text(label, pText);                /*Set the labels text*/
-
-    lv_obj_t *btn1 = lv_btn_create(lv_scr_act(), NULL);
-    lv_obj_add_style(btn1, LV_BTN_PART_MAIN, &menuButtonStyle);
-    lv_obj_set_width(btn1, LV_HOR_RES);
-    lv_obj_set_event_cb(btn1, event_handler);
-    lv_obj_align(btn1, label, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
-
-    lv_obj_t *btn1label = lv_label_create(btn1, NULL);
-    lv_label_set_text(btn1label, "Button 1");
-    lv_obj_set_user_data(btn1, btn1label);
-
-    lv_obj_t *btn2 = lv_btn_create(lv_scr_act(), btn1);
-    lv_obj_align(btn2, btn1, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
-
-    lv_obj_t *btn2label = lv_label_create(btn2, btn1label);
-    lv_label_set_text(btn2label, "Button 2");
-    lv_obj_set_user_data(btn2, btn2label);
-
-    lv_obj_t *btn3 = lv_btn_create(lv_scr_act(), btn1);
-    lv_obj_align(btn3, btn2, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
-
-    lv_obj_t *btn3label = lv_label_create(btn3, btn1label);
-    lv_label_set_text(btn3label, "Button 3");
-    lv_obj_set_user_data(btn3, btn3label);
-
-    group = lv_group_create();
-    lv_group_add_obj(group, btn1);
-    lv_group_add_obj(group, btn2);
-    lv_group_add_obj(group, btn3);
-    lv_indev_set_group(pInputDevice, group);
 }
