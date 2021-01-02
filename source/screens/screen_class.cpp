@@ -198,3 +198,57 @@ void ScreenClass::PreviousButtonEventHandler(lv_obj_t *obj, lv_event_t event)
         break;
     }
 }
+
+// A utility function
+void ScreenClass::GetTimeRemainingString(char *timeString, time_t currentEpoch, ds3231_alrm_t &alarmTime)
+{
+    struct tm alarmTimeStruct;
+    time_t alarmTimeEpoch;
+    struct tm currentTimeStruct;
+    time_t timeRemaining;
+    time_t hours;
+    time_t minutes;
+    time_t seconds;
+
+    currentTimeStruct = *localtime(&currentEpoch);
+    alarmTimeStruct = currentTimeStruct;
+    alarmTimeStruct.tm_hour = alarmTime.hours;
+    alarmTimeStruct.tm_min = alarmTime.minutes;
+    alarmTimeStruct.tm_sec = alarmTime.seconds;
+    alarmTimeStruct.tm_mday = alarmTime.date;
+    if (alarmTime.date < (uint32_t)currentTimeStruct.tm_mday)
+    {
+        alarmTimeStruct.tm_mon++;
+        if (alarmTimeStruct.tm_mon >= 12)
+        {
+            alarmTimeStruct.tm_year++;
+            alarmTimeStruct.tm_mon = 0;
+        }
+    }
+
+    alarmTimeEpoch = mktime(&alarmTimeStruct);
+    if (alarmTimeEpoch < currentEpoch)
+    {
+        timeRemaining = 0;
+    }
+    else
+    {
+        timeRemaining = alarmTimeEpoch - currentEpoch;
+    }
+
+    hours = timeRemaining / 3600;
+    minutes = (timeRemaining % 3600) / 60;
+    seconds = (timeRemaining % 3600) % 60;
+    if (hours > 0)
+    {
+        sprintf(timeString, "%llu:%02llu", hours, minutes);
+    }
+    else if (minutes > 0)
+    {
+        sprintf(timeString, "%llu:%02llu", minutes, seconds);
+    }
+    else
+    {
+        sprintf(timeString, "%llu", seconds);
+    }
+}

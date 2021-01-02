@@ -11,6 +11,8 @@
 #define LCD_RESET D7
 #define LCD_BACKLIGHT D8
 #define ENCODER_BUTTON P1_8
+#define RTC_SDA D14
+#define RTC_SCL D15
 extern SPI spi;
 extern DigitalOut lcdDC;
 extern DigitalOut lcdReset;

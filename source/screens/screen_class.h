@@ -10,7 +10,9 @@
 #ifndef SCREEN_CLASS_H
 #define SCREEN_CLASS_H
 
+#include <time.h>
 #include "lvgl.h"
+#include "ds3231.h"
 
 enum
 {
@@ -18,6 +20,7 @@ enum
     Screen_NextButtonPressed,
     Screen_Menu1Pressed,
     Screen_Menu2Pressed,
+    Screen_TimeoutComplete,
 };
 
 // Define callback functions
@@ -31,8 +34,9 @@ class ScreenClass
         void LoadScreen();
         void RegisterButtonPressedCallback(ButtonPressedCallback cb);
 
-    protected:
         lv_obj_t *scr;
+
+    protected:
         ButtonPressedCallback buttonPressedCallback;
         bool hasNextButton;
         bool hasPreviousButton;
@@ -44,6 +48,7 @@ class ScreenClass
         void InitializeStyles();
         static void NextButtonEventHandler(lv_obj_t *obj, lv_event_t event);
         static void PreviousButtonEventHandler(lv_obj_t *obj, lv_event_t event);
+        static void GetTimeRemainingString(char *timeString, time_t currentEpoch, ds3231_alrm_t &alarmTime);
         static lv_indev_t *pInputDevice;
         static lv_style_t menuButtonStyle;
         static lv_style_t dialogButtonStyle;
