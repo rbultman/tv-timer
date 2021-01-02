@@ -312,6 +312,8 @@ uint16_t Ds3231::set_alarm(ds3231_alrm_t alarm, bool one_r_two)
         }
         data[data_length++] =  (mask_var | uchar_2_bcd(alarm.hours));
         mask_var = 0;
+
+        printf("Setting hours register to: 0x%02x\r\n", data[data_length - 1]);
         
         //config day/date register
         if(alarm.am4)
@@ -571,14 +573,14 @@ uint16_t Ds3231::get_alarm(ds3231_alrm_t* alarm, bool one_r_two)
             alarm->am3 = (data[1]&ALRM_MASK);
             alarm->am_pm = (data[1]&AM_PM);
             alarm->mode = (data[1]&MODE);
-            
+
             if(alarm->mode)
             {
-                alarm->hours = bcd_2_uchar((data[2]&0x1F));
+                alarm->hours = bcd_2_uchar((data[1]&0x1F));
             }
             else
             {
-                alarm->hours = bcd_2_uchar((data[2]&0x3F));
+                alarm->hours = bcd_2_uchar((data[1]&0x3F));
             }  
             
             if(data[2] & DY_DT)
