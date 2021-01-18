@@ -10,6 +10,7 @@
 #ifndef SCREEN_TIME_H
 #define SCREEN_TIME_H
 
+#include <ctime>
 #include "lvgl.h"
 #include "screen_class.h"
 
@@ -18,14 +19,7 @@ class Screen_Time : public ScreenClass
     public:
         Screen_Time() : timeLabel(NULL), dateLabel(NULL) {}
         lv_obj_t *CreateScreen(lv_indev_t *pInputDevice, bool hasNextButton = false, bool hasPreviousButton = false);
-        void UpdateScreen(
-            uint8_t hours,
-            uint8_t minutes,
-            uint8_t seconds,
-            uint8_t amPm,
-            uint8_t month,
-            uint8_t day,
-            uint8_t year);
+        void UpdateScreen(time_t currentTime, ds3231_alrm_t &alarmTime);
 
     private:
         static void EventHandler(lv_obj_t *obj, lv_event_t event);

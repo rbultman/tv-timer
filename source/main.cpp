@@ -28,6 +28,9 @@ extern "C"
 #include "Screen_Timer.h"
 #include "Screen_TimerMenu.h"
 #include "Screen_TimerRecharge.h"
+#include "Screen_TimerRechargeMenu.h"
+
+#define WATCH_TIME 4500
 
 DigitalOut redLed(LED1);
 DigitalOut greenLed(LED2);
@@ -47,40 +50,38 @@ static Screen_Start screen_start;
 static Screen_Timer screen_timer;
 static Screen_TimerMenu screen_timerMenu;
 static Screen_TimerRecharge screen_timerRecharge;
+static Screen_TimerRechargeMenu screen_timerRechargeMenu;
 
 static Thread heartbeatThread;
 static void HeartbeatTask()
 {
    ds3231_alrm_t alarm;
-   ds3231_time_t time;
-   ds3231_calendar_t date;
 
    while (true)
    {
       if (lv_scr_act() == screen_time.scr)
       {
-         rtc.get_time(&time);
-         rtc.get_calendar(&date);
-         screen_time.UpdateScreen(
-             time.hours,
-             time.minutes,
-             time.seconds,
-             time.am_pm,
-             date.month,
-             date.date,
-             date.year);
+         screen_time.UpdateScreen(rtc.get_epoch(), alarm);
       }
-
-      if (lv_scr_act() == screen_timer.scr)
+      else if (lv_scr_act() == screen_timer.scr)
       {
          rtc.get_alarm(&alarm, ALARM1);
          screen_timer.UpdateScreen(rtc.get_epoch(), alarm);
       }
-
-      if (lv_scr_act() == screen_timerRecharge.scr)
+      else if (lv_scr_act() == screen_timerMenu.scr)
+      {
+         rtc.get_alarm(&alarm, ALARM1);
+         screen_timerMenu.UpdateScreen(rtc.get_epoch(), alarm);
+      }
+      else if (lv_scr_act() == screen_timerRecharge.scr)
       {
          rtc.get_alarm(&alarm, ALARM2);
          screen_timerRecharge.UpdateScreen(rtc.get_epoch(), alarm);
+      }
+      else if (lv_scr_act() == screen_timerRechargeMenu.scr)
+      {
+         rtc.get_alarm(&alarm, ALARM2);
+         screen_timerRechargeMenu.UpdateScreen(rtc.get_epoch(), alarm);
       }
 
       greenLed = 1;
@@ -158,27 +159,35 @@ void TimeScreenCallback(uint8_t whichButton)
 
 void TimerScreenCallback(uint8_t whichButton)
 {
-   screen_timerMenu.LoadScreen();
+   switch (whichButton)
+   {
+   case Screen_Menu1Pressed:
+      screen_timerMenu.LoadScreen();
+      break;
+   case Screen_TimeoutComplete:
+      ClearRtcFlags();
+      DisableRtcInterrupt(ALARM1);
+      DisableRtcInterrupt(ALARM2);
+      screen_time.LoadScreen();
+      break;
+   }
 }
 
 void TimerMenuScreenCallback(uint8_t whichButton)
 {
    ds3231_alrm_t alarm;
-   time_t timeEpoch;
-   time_t alarmEpoch;
-   time_t timeRemaining;
    struct tm alarmTs;
+   time_t alarmEpoch;
+   time_t timeEpoch;
+   time_t timeRemaining;
 
    switch (whichButton)
    {
    case Screen_Menu1Pressed:
-      // get current alarm epoch
-      rtc.get_alarm(&alarm, ALARM1);
-      AlarmToTimeStruct(alarmTs, alarm);
-      alarmEpoch = mktime(&alarmTs);
+      alarmEpoch = GetAlarmEpoch(ALARM1);
       // get epoch for new alarm time
       timeEpoch = rtc.get_epoch();
-      timeRemaining = 7200 - (alarmEpoch - timeEpoch);
+      timeRemaining = WATCH_TIME - (alarmEpoch - timeEpoch);
       alarmEpoch = timeEpoch + timeRemaining;
       // create the alarm structure and set the alarm
       alarmTs = *localtime(&alarmEpoch);
@@ -194,6 +203,13 @@ void TimerMenuScreenCallback(uint8_t whichButton)
       break;
    case Screen_PreviousButtonPressed:
       screen_timer.LoadScreen();
+      break;
+   case Screen_TimeoutComplete:
+      ClearRtcFlags();
+      DisableRtcInterrupt(ALARM1);
+      DisableRtcInterrupt(ALARM2);
+      screen_timerRecharge.LoadScreen();
+      break;
    }
 }
 
@@ -202,6 +218,49 @@ void TimerRechargeScreenCallback(uint8_t whichButton)
    switch (whichButton)
    {
    case Screen_TimeoutComplete:
+      ClearRtcFlags();
+      DisableRtcInterrupt(ALARM1);
+      DisableRtcInterrupt(ALARM2);
+      screen_time.LoadScreen();
+      break;
+   case Screen_Menu1Pressed:
+      screen_timerRechargeMenu.LoadScreen();
+      break;
+   }
+}
+
+void TimerRechargeMenuScreenCallback(uint8_t whichButton)
+{
+   ds3231_alrm_t alarm;
+   struct tm alarmTs;
+   time_t alarmEpoch;
+   time_t timeEpoch;
+   time_t timeRemaining;
+
+   switch (whichButton)
+   {
+   case Screen_Menu1Pressed:
+      alarmEpoch = GetAlarmEpoch(ALARM2);
+      // get epoch for new alarm time
+      timeEpoch = rtc.get_epoch();
+      timeRemaining = WATCH_TIME - (alarmEpoch - timeEpoch);
+      alarmEpoch = timeEpoch + timeRemaining;
+      alarmTs = *localtime(&alarmEpoch);
+      InitializeAlarm(alarm, alarmTs);
+      rtc.set_alarm(alarm, ALARM1);
+      EnableRtcInterrupt(ALARM1);
+      DisableRtcInterrupt(ALARM2);
+      ClearRtcFlags();
+      screen_timer.UpdateScreen(rtc.get_epoch(), alarm);
+      screen_timer.LoadScreen();
+      break;
+   case Screen_PreviousButtonPressed:
+      screen_timerRecharge.LoadScreen();
+      break;
+   case Screen_TimeoutComplete:
+      ClearRtcFlags();
+      DisableRtcInterrupt(ALARM1);
+      DisableRtcInterrupt(ALARM2);
       screen_time.LoadScreen();
       break;
    }
@@ -220,7 +279,7 @@ void StartScreenCallback(uint8_t whichButton)
       screen_time.LoadScreen();
       break;
    case Screen_Menu1Pressed:
-      timeEpoch = rtc.get_epoch() + 7200;
+      timeEpoch = rtc.get_epoch() + WATCH_TIME;
       ts = *localtime(&timeEpoch);
       InitializeAlarm(alarm, ts);
       rtc.set_alarm(alarm, ALARM1);
@@ -275,6 +334,9 @@ int main()
    screen_timerRecharge.CreateScreen(Display_GetInputDevice());
    screen_timerRecharge.RegisterButtonPressedCallback(TimerRechargeScreenCallback);
 
+   screen_timerRechargeMenu.CreateScreen(Display_GetInputDevice());
+   screen_timerRechargeMenu.RegisterButtonPressedCallback(TimerRechargeMenuScreenCallback);
+
    ds3231_cntl_stat_t rtcStatus;
    rtc.get_cntl_stat_reg(&rtcStatus);
    printf("RTC control: %d\r\n", rtcStatus.control);
@@ -289,7 +351,20 @@ int main()
    {
       puts("RTC oscillator already configured.");
       timeIsInitialized = true;
-      screen_time.LoadScreen();
+      if (rtcStatus.control & A1IE)
+      {
+         puts("Timer was running, loading timer screen.");
+         screen_timer.LoadScreen();
+      }
+      else if (rtcStatus.control & A2IE)
+      {
+         puts("Timer was recharging, loading recharge screen.");
+         screen_timerRecharge.LoadScreen();
+      }
+      else
+      {
+         screen_time.LoadScreen();
+      }
    }
 
    heartbeatThread.start(HeartbeatTask);

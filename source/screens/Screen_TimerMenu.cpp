@@ -18,15 +18,12 @@ void Screen_TimerMenu::ButtonEventHandler(lv_obj_t *obj, lv_event_t event)
     switch (event)
     {
     case LV_EVENT_FOCUSED:
-        puts("Stop timer button received focus.");
         lv_obj_set_style_local_text_color(label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
         break;
     case LV_EVENT_DEFOCUSED:
-        puts("Stop timer button lost focus.");
         lv_obj_set_style_local_text_color(label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
         break;
     case LV_EVENT_SHORT_CLICKED:
-        puts("Stop timer button clicked.");
         if (pScreen->buttonPressedCallback)
         {
             pScreen->buttonPressedCallback(Screen_Menu1Pressed);
@@ -57,4 +54,18 @@ lv_obj_t *Screen_TimerMenu::CreateScreen(lv_indev_t *pInputDevice, bool hasNextB
         lv_group_add_obj(group, previousButton);
 
     return scr;
+}
+
+void Screen_TimerMenu::UpdateScreen(time_t currentEpoch, ds3231_alrm_t &alarmTime)
+{
+    char timeString[128];
+
+    GetTimeRemainingString(timeString, currentEpoch, alarmTime);
+    if (strcmp(timeString, "0") == 0)
+    {
+        if (buttonPressedCallback)
+        {
+            buttonPressedCallback(Screen_TimeoutComplete);
+        }
+    }
 }

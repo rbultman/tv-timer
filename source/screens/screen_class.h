@@ -10,7 +10,7 @@
 #ifndef SCREEN_CLASS_H
 #define SCREEN_CLASS_H
 
-#include <time.h>
+#include <ctime>
 #include "lvgl.h"
 #include "ds3231.h"
 
@@ -49,6 +49,8 @@ class ScreenClass
         static void NextButtonEventHandler(lv_obj_t *obj, lv_event_t event);
         static void PreviousButtonEventHandler(lv_obj_t *obj, lv_event_t event);
         static void GetTimeRemainingString(char *timeString, time_t currentEpoch, ds3231_alrm_t &alarmTime);
+        static void GetTimeString(char *pString, time_t t);
+        static void GetDateString(char *pString, time_t t);
         static lv_indev_t *pInputDevice;
         static lv_style_t menuButtonStyle;
         static lv_style_t dialogButtonStyle;

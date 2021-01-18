@@ -32,5 +32,6 @@ void EnableRtcInterrupt(bool alarm);
 void DisableRtcInterrupt(bool alarm);
 void ClearRtcFlag(bool alarm);
 void ClearRtcFlags();
+time_t GetAlarmEpoch(bool whichAlarm);
 
 #endif // RTC_H

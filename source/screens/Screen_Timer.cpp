@@ -61,4 +61,11 @@ void Screen_Timer::UpdateScreen(time_t currentEpoch, ds3231_alrm_t &alarmTime)
 
     GetTimeRemainingString(timeString, currentEpoch, alarmTime);
     lv_label_set_text(timeRemainingLabel, timeString);
+    if (strcmp(timeString, "0") == 0)
+    {
+        if (buttonPressedCallback)
+        {
+            buttonPressedCallback(Screen_TimeoutComplete);
+        }
+    }
 }

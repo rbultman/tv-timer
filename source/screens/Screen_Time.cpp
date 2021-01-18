@@ -54,14 +54,7 @@ lv_obj_t *Screen_Time::CreateScreen(lv_indev_t *pInputDevice, bool hasNextButton
     return scr;
 }
 
-void Screen_Time::UpdateScreen(
-    uint8_t hours,
-    uint8_t minutes,
-    uint8_t seconds,
-    uint8_t amPm,
-    uint8_t month,
-    uint8_t day,
-    uint8_t year)
+void Screen_Time::UpdateScreen(time_t currentTime, ds3231_alrm_t &alarmTime)
 {
     char msg[64];
 
@@ -69,7 +62,7 @@ void Screen_Time::UpdateScreen(
     {
         if (timeLabel)
         {
-            sprintf(msg, "%d:%02d %s", hours, minutes, amPm ? "PM" : "AM");
+            GetTimeString(msg, currentTime);
             lv_label_set_text(timeLabel, msg);
         }
         else
@@ -80,7 +73,7 @@ void Screen_Time::UpdateScreen(
 
         if (dateLabel)
         {
-            sprintf(msg, "%d/%d/%d", month, day, year + 2000);
+            GetDateString(msg, currentTime);
             lv_label_set_text(dateLabel, msg);
         }
     }

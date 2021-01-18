@@ -313,8 +313,6 @@ uint16_t Ds3231::set_alarm(ds3231_alrm_t alarm, bool one_r_two)
         data[data_length++] =  (mask_var | uchar_2_bcd(alarm.hours));
         mask_var = 0;
 
-        printf("Setting hours register to: 0x%02x\r\n", data[data_length - 1]);
-        
         //config day/date register
         if(alarm.am4)
         {

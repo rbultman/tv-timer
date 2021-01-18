@@ -199,7 +199,10 @@ void ScreenClass::PreviousButtonEventHandler(lv_obj_t *obj, lv_event_t event)
     }
 }
 
-// A utility function
+/*
+ Utility functions
+ */
+
 void ScreenClass::GetTimeRemainingString(char *timeString, time_t currentEpoch, ds3231_alrm_t &alarmTime)
 {
     struct tm alarmTimeStruct;
@@ -251,4 +254,32 @@ void ScreenClass::GetTimeRemainingString(char *timeString, time_t currentEpoch, 
     {
         sprintf(timeString, "%llu", seconds);
     }
+}
+
+void ScreenClass::GetTimeString(char *pString, time_t epoch)
+{
+    struct tm ts;
+    static const char pm[] = "PM";
+    static const char am[] = "AM";
+    const char *amPm = am;
+
+    ts = *localtime(&epoch);
+    if (ts.tm_hour > 12)
+    {
+        ts.tm_hour -= 12;
+        amPm = pm;
+    }
+    if (ts.tm_hour == 0)
+    {
+        ts.tm_hour = 12;
+    }
+
+    sprintf(pString, "%d:%02d %s", ts.tm_hour, ts.tm_min, amPm);
+}
+void ScreenClass::GetDateString(char *pString, time_t epoch)
+{
+    struct tm ts;
+
+    ts = *localtime(&epoch);
+    sprintf(pString, "%d/%d/%d", ts.tm_mon + 1, ts.tm_mday, ts.tm_year + 1900);
 }

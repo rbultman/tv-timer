@@ -60,33 +60,17 @@ lv_obj_t *Screen_TimerRecharge::CreateScreen(lv_indev_t *pInputDevice, bool hasN
 void Screen_TimerRecharge::UpdateScreen(time_t currentEpoch, ds3231_alrm_t & alarmTime)
 {
     char msg[64];
-    struct tm ts;
-    static const char pm[] = "PM";
-    static const char am[] = "AM";
-    const char * amPm = am;
-
-    ts = *localtime(&currentEpoch);
-    if (ts.tm_hour > 12)
-    {
-        ts.tm_hour -= 12;
-        amPm = pm;
-    }
-    if (ts.tm_hour == 0)
-    {
-        ts.tm_hour = 12;
-    }
-
     if (scr)
     {
         if (timeLabel)
         {
-            sprintf(msg, "%d:%02d %s", ts.tm_hour, ts.tm_min, amPm);
+            GetTimeString(msg, currentEpoch);
             lv_label_set_text(timeLabel, msg);
         }
 
         if (dateLabel)
         {
-            sprintf(msg, "%d/%d/%d", ts.tm_mon+1, ts.tm_mday, ts.tm_year + 1900);
+            GetDateString(msg, currentEpoch);
             lv_label_set_text(dateLabel, msg);
         }
 

@@ -176,3 +176,14 @@ void ClearRtcFlags()
     ClearRtcFlag(ALARM1);
     ClearRtcFlag(ALARM2);
 }
+
+time_t GetAlarmEpoch(bool whichAlarm)
+{
+    ds3231_alrm_t alarm;
+    struct tm alarmTs;
+    
+    // get current alarm epoch
+    rtc.get_alarm(&alarm, whichAlarm);
+    AlarmToTimeStruct(alarmTs, alarm);
+    return mktime(&alarmTs);
+}
