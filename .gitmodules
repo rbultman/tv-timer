@@ -4,9 +4,3 @@
 [submodule "source/lvgl"]
 	path = source/lvgl
 	url = https://github.com/rbultman/lvgl
-[submodule "tv-timer/lib/lvgl"]
-	path = tv-timer/lib/lvgl
-	url = https://github.com/lvgl/lvgl
-[submodule "tv-timer/lib/lv_drivers"]
-	path = tv-timer/lib/lv_drivers
-	url = https://github.com/lvgl/lv_drivers
