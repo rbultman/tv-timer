@@ -7,8 +7,11 @@
     License: MIT
 */
 
+#include <Arduino.h>
 #include <Encoder.h>
-#include <TeensyThreads.h>
+// #include <TeensyThreads.h>
+#include <Bounce.h>
+#include <SPI.h>
 #include "display.h"
 #include "ST7565.h"
 #include "io_ports.h"
@@ -46,62 +49,64 @@ static void initLCD()
             0xAF, // Display on
         };
     uint8_t i;
-    lcdReset = 0;
+    digitalWrite(LCD_RESET, 0);
     delay(100);
-    lcdReset = 1;
+    digitalWrite(LCD_RESET, 1);
     delay(100);
     for (i = 0; i < sizeof(initCmds) / sizeof(uint8_t); i++)
     {
-        lcdDC = 0;
-        SPI.transfer(initCmds[i]);
+      digitalWrite(LCD_DC, 0);
+      SPI.transfer(initCmds[i]);
     }
 }
 
-static void lvglTick()
+#ifdef KILL
+static void lvglTick(int unused)
 {
   while (true)
   {
-    delay(5);
+    threads.delay(5);
     lv_tick_inc(5);
   }
 }
 
-static void lvglTask()
+static void lvglTask(int unused)
 {
+  uint32_t nextTime = 5;
+  
   while (true)
   {
-    delay(5);
-    lv_task_handler();
+    threads.delay(nextTime);
+    nextTime = lv_task_handler();
   }
 }
+#endif
 
-static bool encoderButtonPressed = false;
-static void EncoderButtonDownHandler()
+static volatile bool encoderButtonPressed = false;
+static void UpdateEncoder()
 {
-  encoderButtonPressed = true;
+  if (encoderButton.update())
+  {
+    if (encoderButton.risingEdge())
+    {
+      encoderButtonPressed = false;
+    }
+    else if (encoderButton.fallingEdge())
+    {
+      encoderButtonPressed = true;
+    }
+  }
 }
-
-static void EncoderButtonUpHandler()
-{
-  encoderButtonPressed = false;
-}
+#ifdef KILL
 static void encoderButtonThread()
 {
   while(true)
   {
-    if (encoderButton.update())
-    {
-      if (encoderButton.risingEdge())
-      {
-        
-      }
-      else if (encoderButton.fallingEdge())
-      {
-        
-      }
-    }
+    UpdateEncoder();
+    threads.delay(10);
   }
 }
+#endif
 
 static bool encoder_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
 {
@@ -140,16 +145,47 @@ void Display_Initialize(void)
     indev_drv.read_cb = encoder_read;
     pInputDevice = lv_indev_drv_register(&indev_drv);
 
-    threads.addThread(lvglTick);
-    threads.addThread(lvglTask);
+#ifdef KILL
+    Serial.print("Starting lvglTick on ID ");
+    Serial.println(threads.addThread(lvglTick, 1, 2048));
+    Serial.print("Starting lvglTask on ID ");
+    Serial.println(threads.addThread(lvglTask, 1, 16384));
 
     delay(1000);
 
-    encoderButton.fall(EncoderButtonDownHandler);
-    encoderButton.rise(EncoderButtonUpHandler);
+    Serial.print("Starting encoderButtonThread on ID ");
+    Serial.println(threads.addThread(encoderButtonThread));
+#endif
 }
 
 lv_indev_t * Display_GetInputDevice()
 {
     return pInputDevice;
+}
+
+void Display_Loop()
+{
+  static uint32_t lastMillis = 0;
+  uint32_t newMillis = millis();
+  uint32_t elapsed = newMillis - lastMillis;
+  static uint8_t taskCount = 0;
+  static uint8_t tickCount = 0;
+  static uint32_t nextTaskCount = 5;
+
+  tickCount += elapsed;
+  taskCount += elapsed;
+
+  if (tickCount >= 5)
+  {
+    lv_tick_inc(tickCount);
+    tickCount = 0;
+  }
+
+  if (taskCount >= nextTaskCount)
+  {
+    nextTaskCount = lv_task_handler();
+    taskCount = 0;
+  }
+
+  UpdateEncoder();
 }

@@ -13,6 +13,7 @@
 #include "lvgl.h"
 
 void Display_Initialize(void);
+void Display_Loop();
 lv_indev_t *Display_GetInputDevice();
 
 #endif // DISPLAY_H
