@@ -8,8 +8,6 @@
 #include <stdio.h>
 #include "Screen_TimerRechargeMenu.h"
 
-#define VSPACING 1
-
 void Screen_TimerRechargeMenu::ButtonEventHandler(lv_obj_t *obj, lv_event_t event)
 {
     Screen_TimerRechargeMenu *pScreen = (Screen_TimerRechargeMenu *)lv_obj_get_user_data(obj);
@@ -18,15 +16,15 @@ void Screen_TimerRechargeMenu::ButtonEventHandler(lv_obj_t *obj, lv_event_t even
     switch (event)
     {
     case LV_EVENT_FOCUSED:
-        puts("Start timer button received focus.");
+        Serial.println("Start timer button received focus.");
         lv_obj_set_style_local_text_color(label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
         break;
     case LV_EVENT_DEFOCUSED:
-        puts("Start timer button lost focus.");
+        Serial.println("Start timer button lost focus.");
         lv_obj_set_style_local_text_color(label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
         break;
     case LV_EVENT_SHORT_CLICKED:
-        puts("Start timer button clicked.");
+        Serial.println("Start timer button clicked.");
         if (pScreen->buttonPressedCallback)
         {
             pScreen->buttonPressedCallback(Screen_Menu1Pressed);

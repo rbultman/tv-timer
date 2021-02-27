@@ -56,10 +56,7 @@ void PrintMemUsage()
 
 void TimeScreenCallback(uint8_t whichButton)
 {
-  Serial.println("Time screen button pressed.");
   screen_start.LoadScreen();
-  PrintMemUsage();
-  printmem = true;
 }
 
 void TimerScreenCallback(uint8_t whichButton)
@@ -124,55 +121,46 @@ void TimerMenuScreenCallback(uint8_t whichButton)
 
 void StartScreenCallback(uint8_t whichButton)
 {
-#ifdef KILL
-  ds3231_calendar_t date;
-  time_t timeEpoch;
-  struct tm ts;
-  ds3231_alrm_t alarm;
-#endif
+  DateTime now;
+  DateTime alarm;
 
-  switch (whichButton)
+      switch (whichButton)
   {
   case Screen_PreviousButtonPressed:
     screen_time.LoadScreen();
     break;
-#ifdef KILL
   case Screen_Menu1Pressed:
-    timeEpoch = rtc.get_epoch() + WATCH_TIME;
-    ts = *localtime(&timeEpoch);
-    InitializeAlarm(alarm, ts);
-    rtc.set_alarm(alarm, ALARM1);
-    EnableRtcInterrupt(ALARM1);
-    DisableRtcInterrupt(ALARM2);
-    ClearRtcFlags();
-    screen_timer.UpdateScreen(rtc.get_epoch(), alarm);
+    now = rtc.now();
+    alarm = now + TimeSpan(WATCH_TIME);
+    rtc.disableAlarm(ALARM1);
+    rtc.clearAlarm(ALARM1);
+    rtc.setAlarm1(now, DS3231_A1_Hour);
+    rtc.disableAlarm(ALARM2);
+    rtc.clearAlarm(ALARM2);
+    screen_timer.UpdateScreen(now, alarm);
     screen_timer.LoadScreen();
     break;
   case Screen_Menu2Pressed:
-    rtc.get_calendar(&date);
-    screen_setDate.SetDate(date.month - 1, date.date, date.year);
+    DateTime now = rtc.now();
+    screen_setDate.SetDate(now.month()-1, now.day(), now.year());
     screen_setDate.LoadScreen();
     break;
-#endif
   }
 }
 
 void SetDateButtonCallback(uint8_t whichButton)
 {
-  #ifdef KILL
-  ds3231_time_t time;
-
   if (whichButton == Screen_NextButtonPressed)
   {
-    rtc.get_time(&time);
-    screen_setTime.SetTime(time.hours, time.minutes, time.am_pm);
+    DateTime now = rtc.now();
+    Serial.printf("Time: %d:%02d:%02d %s\r\n", now.hour(), now.minute(), now.second(), now.twelveHour() == 1 ? "PM" : "AM");
     screen_setTime.LoadScreen();
+    screen_setTime.SetTime(now.hour(), now.minute(), now.twelveHour());
   }
   else
   {
     screen_time.LoadScreen();
   }
-  #endif
 }
 
 void SetTimeButtonCallback(uint8_t whichButton)
@@ -196,7 +184,12 @@ void SetTimeButtonCallback(uint8_t whichButton)
     }
     screen_setTime.GetTime(&hours, &minutes, &amPm);
 
-    UpdateRtc(hours, minutes, 0, amPm, month, day, year);
+    if (amPm)
+    {
+      hours += 12;
+    }
+    month++;
+    UpdateRtc(hours, minutes, month, day, (uint16_t)year+2000);
     timeIsInitialized = true;
     screen_time.LoadScreen();
   }
@@ -273,21 +266,20 @@ void TimerRechargeMenuScreenCallback(uint8_t whichButton)
 static void Heartbeat()
 {
   DateTime alarm;
-
-  Serial.println("tick");
+  DateTime now;
 
   if (lv_scr_act() == screen_time.scr)
   {
-    Serial.println("Updating time screen.");
     DateTime now = rtc.now();
     screen_time.UpdateScreen(now, alarm);
   }
-#ifdef KILL
   else if (lv_scr_act() == screen_timer.scr)
   {
+    now = rtc.now();
     rtc.get_alarm(&alarm, ALARM1);
-    screen_timer.UpdateScreen(rtc.get_epoch(), alarm);
+    screen_timer.UpdateScreen(now, alarm);
   }
+#ifdef KILL
   else if (lv_scr_act() == screen_timerMenu.scr)
   {
     rtc.get_alarm(&alarm, ALARM1);
@@ -310,13 +302,13 @@ static void HeartbeatTask(int unused)
 {
   while (true)
   {
+    threads.delay(1500);
     Heartbeat();
     if(printmem)
     {
       PrintMemUsage();
       printmem = false;
     }
-    threads.delay(1500);
   }
 }
 
@@ -403,19 +395,21 @@ void setup()
   pinMode(LCD_BACKLIGHT_BLUE, OUTPUT);
   pinMode(ENCODER_BUTTON, INPUT);
 
+  Serial.println("initializing display");
   Display_Initialize();
 
+  Serial.println("Registering print routine.");
   lv_log_register_print_cb(my_print); /* register print function for debugging */
 
   //  BacklighOn();
 
+  Serial.println("Creating time screen.");
   screen_time.CreateScreen(Display_GetInputDevice(), false, false);
   screen_time.RegisterButtonPressedCallback(TimeScreenCallback);
 
   screen_start.CreateScreen(Display_GetInputDevice());
-  // screen_start.RegisterButtonPressedCallback(StartScreenCallback);
+  screen_start.RegisterButtonPressedCallback(StartScreenCallback);
 
-#ifdef KILL
   screen_timer.CreateScreen(Display_GetInputDevice(), false, false);
   // screen_timer.RegisterButtonPressedCallback(TimerScreenCallback);
 
@@ -423,57 +417,55 @@ void setup()
   // screen_timerMenu.RegisterButtonPressedCallback(TimerMenuScreenCallback);
 
   screen_setDateInitial.CreateScreen(Display_GetInputDevice(), true, false);
-  // screen_setDateInitial.RegisterButtonPressedCallback(SetDateButtonCallback);
-  screen_setDateInitial.SetDate(1, 1, 21);
+  screen_setDateInitial.RegisterButtonPressedCallback(SetDateButtonCallback);
+  //screen_setDateInitial.SetDate(1, 1, 21);
 
   screen_setDate.CreateScreen(Display_GetInputDevice(), true, true);
-  // screen_setDate.RegisterButtonPressedCallback(SetDateButtonCallback);
-  screen_setDate.SetDate(1, 1, 21);
+  screen_setDate.RegisterButtonPressedCallback(SetDateButtonCallback);
+  // screen_setDate.SetDate(1, 1, 21);
 
   screen_setTime.CreateScreen(Display_GetInputDevice(), true, true);
-  // screen_setTime.RegisterButtonPressedCallback(SetTimeButtonCallback);
-  screen_setTime.SetTime(1, 1, 20);
+  screen_setTime.RegisterButtonPressedCallback(SetTimeButtonCallback);
+  // screen_setTime.SetTime(1, 1, 20);
 
   screen_timerRecharge.CreateScreen(Display_GetInputDevice());
   // screen_timerRecharge.RegisterButtonPressedCallback(TimerRechargeScreenCallback);
 
   screen_timerRechargeMenu.CreateScreen(Display_GetInputDevice());
   // screen_timerRechargeMenu.RegisterButtonPressedCallback(TimerRechargeMenuScreenCallback);
-  #endif
 
+  Serial.println("Initializing RTC");
   InitRtc();
   if (rtc.lostPower())
   {
-    puts("RTC oscillator stopped, need to get the time from the user");
+    Serial.println("RTC oscillator stopped, need to get the time from the user");
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-    // screen_setDateInitial.LoadScreen();
+    screen_setDateInitial.LoadScreen();
   }
-  #ifdef KILL
   else
   {
-    puts("RTC oscillator already configured.");
+    Serial.println("RTC oscillator already configured.");
     timeIsInitialized = true;
-    if (rtcStatus.control & A1IE)
+    if (rtc.alarmEnabled(1))
     {
-      puts("Timer was running, loading timer screen.");
-     screen_timer.LoadScreen();
+      Serial.println("Timer was running, loading timer screen.");
+      screen_timer.LoadScreen();
     }
-    else if (rtcStatus.control & A2IE)
+    else if (rtc.alarmEnabled(2))
     {
-      puts("Timer was recharging, loading recharge screen.");
-     screen_timerRecharge.LoadScreen();
+      Serial.println("Timer was recharging, loading recharge screen.");
+      screen_timerRecharge.LoadScreen();
     }
     else
     {
-     screen_time.LoadScreen();
+      screen_time.LoadScreen();
     }
   }
-  #endif
-
-  screen_time.LoadScreen();
 
   Serial.print("Starting HeartbeatTask on ID ");
   Serial.println(threads.addThread(HeartbeatTask, 1, 4096));
+
+  Serial.println("Setup complete.");
 }
 
 void loop() {

@@ -108,16 +108,31 @@ static void encoderButtonThread()
 }
 #endif
 
+#ifdef KILL
+static bool encoder_read()
+{
+  int16_t pulses = encoder.read();
+  int16_t steps = pulses / 4;
+
+  if (steps != 0)
+  {
+    Serial.printf("Encoder: %d\r\n", steps);
+    encoder.write(pulses - (steps * 4));
+  }
+  return false;
+}
+#endif
 static bool encoder_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
 {
-  int16_t encSteps = encoder.read();
+  int16_t pulses = encoder.read();
+  int16_t steps = pulses / 4;
 
   data->enc_diff = 0;
 
-  if (encSteps / 4 != 0)
+  if (steps != 0)
   {
-    data->enc_diff = encSteps / 4;
-    encoder.write(ENCODER_CENTER);
+    data->enc_diff = steps;
+    encoder.write(pulses - (steps * 4));
   }
 
   data->state = encoderButtonPressed ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;

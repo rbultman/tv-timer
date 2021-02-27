@@ -20,13 +20,14 @@ void InitRtc()
 
 void UpdateRtc(uint8_t hours,
                uint8_t minutes,
-               uint8_t seconds,
-               uint8_t amPm,
                uint8_t month,
                uint8_t day,
-               uint8_t year)
+               uint16_t year)
 {
-    DateTime dt(year, month, day, hours, minutes, seconds);
+    DateTime dt(year, month, day, hours, minutes, 0);
+
+    Serial.printf("Setting date to %d/%d/%d %d:%02d\r\n", month, day, year, hours, minutes);
+    Serial.printf("Setting date to %d/%d/%d %d:%02d\r\n", dt.month(), dt.day(), dt.year(), dt.hour(), dt.minute());
 
     rtc.adjust(dt);
 }

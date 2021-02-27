@@ -129,7 +129,7 @@ void Screen_SetDate::SetDate(uint8_t month, uint8_t day, uint8_t year)
 
     lv_roller_set_selected(monthRoller, month, false);
     lv_spinbox_set_value(daySpinbox, day);
-    lv_spinbox_set_value(yearSpinbox, year + 2000);
+    lv_spinbox_set_value(yearSpinbox, year);
 }
 
 void Screen_SetDate::GetDate(uint8_t *month, uint8_t *day, uint8_t *year)

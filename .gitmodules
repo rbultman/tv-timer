@@ -10,3 +10,6 @@
 [submodule "tv-timer/lib/lv_drivers"]
 	path = tv-timer/lib/lv_drivers
 	url = https://github.com/rbultman/lv_drivers
+[submodule "tv-timer/lib/RTClib"]
+	path = tv-timer/lib/RTClib
+	url = https://github.com/rbultman/RTClib

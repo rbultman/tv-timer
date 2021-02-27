@@ -30,7 +30,7 @@ void Screen_Start::ButtonEventHandler(lv_obj_t *obj, lv_event_t event)
     }
     else
     {
-        puts("ERROR: unknown button object.");
+        Serial.println("ERROR: unknown button object.");
         return;
     }
     

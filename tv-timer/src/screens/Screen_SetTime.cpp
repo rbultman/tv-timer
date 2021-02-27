@@ -123,11 +123,17 @@ void Screen_SetTime::SetTime(uint8_t hours, uint8_t minutes, uint8_t amPm)
 {
     this->hours = hours;
     this->minutes = minutes;
-    this->amPm = amPm;
+    this->amPm = 0;
 
-    lv_spinbox_set_value(hourSpinbox, hours);
-    lv_spinbox_set_value(minuteSpinbox, minutes);
-    lv_roller_set_selected(amPmRoller, amPm ? 1 : 0, false);
+    if (hours > 12)
+    {
+        this->hours = hours - 12;
+        this->amPm = 1;
+    }
+
+    lv_spinbox_set_value(hourSpinbox, this->hours);
+    lv_spinbox_set_value(minuteSpinbox, this->minutes);
+    lv_roller_set_selected(amPmRoller, this->amPm, false);
 }
 
 void Screen_SetTime::GetTime(uint8_t *hours, uint8_t *minutes, uint8_t *amPm)

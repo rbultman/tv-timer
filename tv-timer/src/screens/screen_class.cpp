@@ -78,8 +78,11 @@ lv_obj_t *ScreenClass::CreateScreen(lv_indev_t *_pInputDevice, bool hasNextButto
 
 void ScreenClass::LoadScreen()
 {
+    Serial.println("Loading screen...");
     lv_scr_load(scr);
+    Serial.println("setting input group...");
     lv_indev_set_group(pInputDevice, group);
+    Serial.println("Screen load complete.");
 }
 
 void ScreenClass::InitializeStyles()
