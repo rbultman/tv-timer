@@ -276,7 +276,7 @@ static void Heartbeat()
   else if (lv_scr_act() == screen_timer.scr)
   {
     now = rtc.now();
-    rtc.get_alarm(&alarm, ALARM1);
+    alarm = rtc.getAlarm1();
     screen_timer.UpdateScreen(now, alarm);
   }
 #ifdef KILL

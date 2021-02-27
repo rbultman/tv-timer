@@ -21,11 +21,9 @@ extern RTC_DS3231 rtc;
 void InitRtc();
 void UpdateRtc(uint8_t hours,
                uint8_t minutes,
-               uint8_t seconds,
-               uint8_t amPm,
                uint8_t month,
                uint8_t day,
-               uint8_t year);
+               uint16_t year);
 #ifdef KILL
 void AlarmToTimeStruct(struct tm & ts, ds3231_alrm_t & alarm);
 void InitializeAlarm(ds3231_alrm_t &alarm, struct tm &ts);
