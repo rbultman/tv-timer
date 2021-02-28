@@ -119,17 +119,11 @@ lv_obj_t *Screen_SetTime::CreateScreen(lv_indev_t *pInputDevice, bool hasNextBut
     return scr;
 }
 
-void Screen_SetTime::SetTime(uint8_t hours, uint8_t minutes, uint8_t amPm)
+void Screen_SetTime::SetTime(DateTime &dt)
 {
-    this->hours = hours;
-    this->minutes = minutes;
-    this->amPm = 0;
-
-    if (hours > 12)
-    {
-        this->hours = hours - 12;
-        this->amPm = 1;
-    }
+    this->hours = dt.twelveHour();
+    this->minutes = dt.minute();
+    this->amPm = dt.isPM();
 
     lv_spinbox_set_value(hourSpinbox, this->hours);
     lv_spinbox_set_value(minuteSpinbox, this->minutes);

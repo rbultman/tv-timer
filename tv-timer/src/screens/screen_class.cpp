@@ -206,77 +206,41 @@ void ScreenClass::PreviousButtonEventHandler(lv_obj_t *obj, lv_event_t event)
  Utility functions
  */
 
+static const char dateTimeStringFormat[] = "MM/DD/YYYY hh:mm:ss AP";
+
 void ScreenClass::GetTimeRemainingString(char *timeString, DateTime &currentTime, DateTime &alarmTime)
 {
-    #ifdef KILL
-    struct tm alarmTimeStruct;
-    time_t alarmTimeEpoch;
-    struct tm currentTimeStruct;
-    time_t timeRemaining;
-    time_t hours;
-    time_t minutes;
-    time_t seconds;
+    DateTime alarmDateTime = ConvertAlarmToDate(currentTime, alarmTime);
+    TimeSpan timeRemaining;
 
-    currentTimeStruct = *localtime(&currentEpoch);
-    alarmTimeStruct = currentTimeStruct;
-    alarmTimeStruct.tm_hour = alarmTime.hours;
-    alarmTimeStruct.tm_min = alarmTime.minutes;
-    alarmTimeStruct.tm_sec = alarmTime.seconds;
-    alarmTimeStruct.tm_mday = alarmTime.date;
-    if (alarmTime.date < (uint32_t)currentTimeStruct.tm_mday)
+    if (currentTime > alarmDateTime)
     {
-        alarmTimeStruct.tm_mon++;
-        if (alarmTimeStruct.tm_mon >= 12)
-        {
-            alarmTimeStruct.tm_year++;
-            alarmTimeStruct.tm_mon = 0;
-        }
-    }
-
-    alarmTimeEpoch = mktime(&alarmTimeStruct);
-    if (alarmTimeEpoch < currentEpoch)
-    {
-        timeRemaining = 0;
+        timeRemaining = TimeSpan(0);
     }
     else
     {
-        timeRemaining = alarmTimeEpoch - currentEpoch;
+        timeRemaining = alarmDateTime - currentTime;
     }
 
-    hours = timeRemaining / 3600;
-    minutes = (timeRemaining % 3600) / 60;
-    seconds = (timeRemaining % 3600) % 60;
-    if (hours > 0)
+    if (timeRemaining.hours() > 0)
     {
-        sprintf(timeString, "%lu:%02lu", hours, minutes);
+        sprintf(timeString, "%d:%02d", timeRemaining.hours(), timeRemaining.minutes());
     }
-    else if (minutes > 0)
+    else if (timeRemaining.minutes() > 0)
     {
-        sprintf(timeString, "%lu:%02lu", minutes, seconds);
+        sprintf(timeString, "%d:%02d", timeRemaining.minutes(), timeRemaining.seconds());
     }
     else
     {
-        sprintf(timeString, "%lu", seconds);
+        sprintf(timeString, "%d", timeRemaining.seconds());
     }
-    #endif
 }
 
-void ScreenClass::GetTimeString(char *pString, DateTime &epoch)
+void ScreenClass::GetTimeString(char *pString, DateTime &datetime)
 {
-    static const char pm[] = "PM";
-    static const char am[] = "AM";
-    const char *amPm = am;
-    uint8_t hour = epoch.hour();
-
-    if (hour > 12)
-    {
-        hour -= 12;
-        amPm = pm;
-    }
-
-    sprintf(pString, "%d:%02d %s", hour, epoch.minute(), amPm);
+    sprintf(pString, "%d:%02d %s", datetime.twelveHour(), datetime.minute(), datetime.isPM() ? "PM" : "AM");
 }
-void ScreenClass::GetDateString(char *pString, DateTime &epoch)
+void ScreenClass::GetDateString(char *pString, DateTime &datetime)
 {
-    sprintf(pString, "%d/%d/%d", epoch.month(), epoch.day(), epoch.year());
+    sprintf(pString, "%d/%d/%d", datetime.month(), datetime.day(), datetime.year());
 }

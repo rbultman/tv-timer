@@ -18,6 +18,8 @@
 static volatile uint32_t seconds = 0;
 static bool timeIsInitialized = false;
 
+static const char dateTimeStringFormat[] = "MM/DD/YYYY hh:mm:ss AP";
+
 #define WATCH_TIME 4500
 
 static Screen_Time screen_time;
@@ -61,62 +63,53 @@ void TimeScreenCallback(uint8_t whichButton)
 
 void TimerScreenCallback(uint8_t whichButton)
 {
-  #ifdef KILL
   switch (whichButton)
   {
   case Screen_Menu1Pressed:
     screen_timerMenu.LoadScreen();
     break;
   case Screen_TimeoutComplete:
-    ClearRtcFlags();
-    DisableRtcInterrupt(ALARM1);
-    DisableRtcInterrupt(ALARM2);
-    screen_time.LoadScreen();
+    rtc.disableAlarm(ALARM1);
+    rtc.disableAlarm(ALARM2);
+    rtc.clearAlarm(ALARM1);
+    rtc.clearAlarm(ALARM2);
+    screen_timerRecharge.LoadScreen();
     break;
   }
-  #endif
 }
 
 void TimerMenuScreenCallback(uint8_t whichButton)
 {
-  #ifdef KILL
-  ds3231_alrm_t alarm;
-  struct tm alarmTs;
-  time_t alarmEpoch;
-  time_t timeEpoch;
-  time_t timeRemaining;
+  DateTime now = rtc.now();
+  DateTime alarmTime;
+  TimeSpan timeRemaining;
 
   switch (whichButton)
   {
   case Screen_Menu1Pressed:
-    alarmEpoch = GetAlarmEpoch(ALARM1);
-    // get epoch for new alarm time
-    timeEpoch = rtc.get_epoch();
-    timeRemaining = WATCH_TIME - (alarmEpoch - timeEpoch);
-    alarmEpoch = timeEpoch + timeRemaining;
-    // create the alarm structure and set the alarm
-    alarmTs = *localtime(&alarmEpoch);
-    InitializeAlarm(alarm, alarmTs);
-    rtc.set_alarm(alarm, ALARM2);
-
-    EnableRtcInterrupt(ALARM2);
-    DisableRtcInterrupt(ALARM1);
-    ClearRtcFlags();
-
-    screen_timerRecharge.UpdateScreen(rtc.get_epoch(), alarm);
+    alarmTime = rtc.getAlarm1();
+    rtc.disableAlarm(ALARM1);
+    rtc.disableAlarm(ALARM2);
+    rtc.clearAlarm(ALARM1);
+    rtc.clearAlarm(ALARM2);
+    alarmTime = ConvertAlarmToDate(now, alarmTime);
+    timeRemaining = TimeSpan(WATCH_TIME) - (alarmTime - now);
+    alarmTime = now + timeRemaining;
+    rtc.setAlarm2(alarmTime, DS3231_A2_Date);
+    screen_timerRecharge.UpdateScreen(now, alarmTime);
     screen_timerRecharge.LoadScreen();
     break;
   case Screen_PreviousButtonPressed:
     screen_timer.LoadScreen();
     break;
   case Screen_TimeoutComplete:
-    ClearRtcFlags();
-    DisableRtcInterrupt(ALARM1);
-    DisableRtcInterrupt(ALARM2);
+    rtc.disableAlarm(ALARM1);
+    rtc.disableAlarm(ALARM2);
+    rtc.clearAlarm(ALARM1);
+    rtc.clearAlarm(ALARM2);
     screen_timerRecharge.LoadScreen();
     break;
   }
-  #endif
 }
 
 void StartScreenCallback(uint8_t whichButton)
@@ -124,7 +117,7 @@ void StartScreenCallback(uint8_t whichButton)
   DateTime now;
   DateTime alarm;
 
-      switch (whichButton)
+  switch (whichButton)
   {
   case Screen_PreviousButtonPressed:
     screen_time.LoadScreen();
@@ -134,7 +127,7 @@ void StartScreenCallback(uint8_t whichButton)
     alarm = now + TimeSpan(WATCH_TIME);
     rtc.disableAlarm(ALARM1);
     rtc.clearAlarm(ALARM1);
-    rtc.setAlarm1(now, DS3231_A1_Hour);
+    rtc.setAlarm1(alarm, DS3231_A1_Date);
     rtc.disableAlarm(ALARM2);
     rtc.clearAlarm(ALARM2);
     screen_timer.UpdateScreen(now, alarm);
@@ -155,7 +148,7 @@ void SetDateButtonCallback(uint8_t whichButton)
     DateTime now = rtc.now();
     Serial.printf("Time: %d:%02d:%02d %s\r\n", now.hour(), now.minute(), now.second(), now.twelveHour() == 1 ? "PM" : "AM");
     screen_setTime.LoadScreen();
-    screen_setTime.SetTime(now.hour(), now.minute(), now.twelveHour());
+    screen_setTime.SetTime(now);
   }
   else
   {
@@ -170,7 +163,7 @@ void SetTimeButtonCallback(uint8_t whichButton)
   uint8_t amPm;
   uint8_t month;
   uint8_t day;
-  uint8_t year;
+  uint16_t year;
 
   if (whichButton == Screen_NextButtonPressed)
   {
@@ -189,7 +182,7 @@ void SetTimeButtonCallback(uint8_t whichButton)
       hours += 12;
     }
     month++;
-    UpdateRtc(hours, minutes, month, day, (uint16_t)year+2000);
+    UpdateRtc(hours, minutes, month, day, year);
     timeIsInitialized = true;
     screen_time.LoadScreen();
   }
@@ -411,22 +404,19 @@ void setup()
   screen_start.RegisterButtonPressedCallback(StartScreenCallback);
 
   screen_timer.CreateScreen(Display_GetInputDevice(), false, false);
-  // screen_timer.RegisterButtonPressedCallback(TimerScreenCallback);
+  screen_timer.RegisterButtonPressedCallback(TimerScreenCallback);
 
   screen_timerMenu.CreateScreen(Display_GetInputDevice());
-  // screen_timerMenu.RegisterButtonPressedCallback(TimerMenuScreenCallback);
+  screen_timerMenu.RegisterButtonPressedCallback(TimerMenuScreenCallback);
 
   screen_setDateInitial.CreateScreen(Display_GetInputDevice(), true, false);
   screen_setDateInitial.RegisterButtonPressedCallback(SetDateButtonCallback);
-  //screen_setDateInitial.SetDate(1, 1, 21);
 
   screen_setDate.CreateScreen(Display_GetInputDevice(), true, true);
   screen_setDate.RegisterButtonPressedCallback(SetDateButtonCallback);
-  // screen_setDate.SetDate(1, 1, 21);
 
   screen_setTime.CreateScreen(Display_GetInputDevice(), true, true);
   screen_setTime.RegisterButtonPressedCallback(SetTimeButtonCallback);
-  // screen_setTime.SetTime(1, 1, 20);
 
   screen_timerRecharge.CreateScreen(Display_GetInputDevice());
   // screen_timerRecharge.RegisterButtonPressedCallback(TimerRechargeScreenCallback);
@@ -446,17 +436,17 @@ void setup()
   {
     Serial.println("RTC oscillator already configured.");
     timeIsInitialized = true;
-    if (rtc.alarmEnabled(1))
-    {
-      Serial.println("Timer was running, loading timer screen.");
-      screen_timer.LoadScreen();
-    }
-    else if (rtc.alarmEnabled(2))
-    {
-      Serial.println("Timer was recharging, loading recharge screen.");
-      screen_timerRecharge.LoadScreen();
-    }
-    else
+    // if (rtc.alarmEnabled(1))
+    // {
+    //   Serial.println("Timer was running, loading timer screen.");
+    //   screen_timer.LoadScreen();
+    // }
+    // else if (rtc.alarmEnabled(2))
+    // {
+    //   Serial.println("Timer was recharging, loading recharge screen.");
+    //   screen_timerRecharge.LoadScreen();
+    // }
+    // else
     {
       screen_time.LoadScreen();
     }

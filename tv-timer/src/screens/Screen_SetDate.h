@@ -17,8 +17,8 @@ class Screen_SetDate : public ScreenClass
 {
 public:
     lv_obj_t *CreateScreen(lv_indev_t *pInputDevice, bool hasNextButton = false, bool hasPreviousButton = false);
-    void SetDate(uint8_t month, uint8_t day, uint8_t year);
-    void GetDate(uint8_t *month, uint8_t *day, uint8_t *year);
+    void SetDate(uint8_t month, uint8_t day, uint16_t year);
+    void GetDate(uint8_t *month, uint8_t *day, uint16_t *year);
 
 private:
     static void SpinboxEventHandler(lv_obj_t *obj, lv_event_t event);
@@ -28,7 +28,7 @@ private:
     lv_obj_t *yearSpinbox;
     uint8_t month;
     uint8_t day;
-    uint8_t year;
+    uint16_t year;
 };
 
 #endif // SCREEN_SET_DATE_H

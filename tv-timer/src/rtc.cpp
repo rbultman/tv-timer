@@ -32,6 +32,26 @@ void UpdateRtc(uint8_t hours,
     rtc.adjust(dt);
 }
 
+DateTime ConvertAlarmToDate(DateTime currentTime, DateTime alarmTime)
+{
+    uint8_t alarmMonth = currentTime.month();
+    uint16_t alarmYear = currentTime.year();
+    DateTime alarmDateTime;
+    TimeSpan timeRemaining;
+
+    if (alarmTime.day() < (uint32_t)currentTime.day())
+    {
+        alarmMonth++;
+        if (alarmMonth > 12)
+        {
+            alarmYear++;
+            alarmMonth = 1;
+        }
+    }
+
+    return DateTime(alarmYear, alarmMonth, alarmTime.day(), alarmTime.hour(), alarmTime.minute(), alarmTime.second());
+}
+
 // Assumption: The alarm will always be in the future.
 #ifdef KILL
 void AlarmToTimeStruct(struct tm &ts, ds3231_alrm_t &alarm)

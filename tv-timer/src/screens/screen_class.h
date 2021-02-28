@@ -14,6 +14,7 @@
 #include <time.h>
 #include "lvgl.h"
 #include "RTClib.h"
+#include "rtc.h"
 
 enum
 {

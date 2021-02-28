@@ -17,7 +17,7 @@ class Screen_SetTime : public ScreenClass
 {
 public:
     lv_obj_t *CreateScreen(lv_indev_t *pInputDevice, bool hasNextButton = false, bool hasPreviousButton = false);
-    void SetTime(uint8_t hours, uint8_t minutes, uint8_t amPm);
+    void SetTime(DateTime &dt);
     void GetTime(uint8_t *hours, uint8_t *minutes, uint8_t *amPm);
 
 private:

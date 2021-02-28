@@ -25,7 +25,7 @@ void Screen_SetDate::SpinboxEventHandler(lv_obj_t *obj, lv_event_t event)
     case LV_EVENT_VALUE_CHANGED:
         if (obj == pScreen->yearSpinbox)
         {
-            pScreen->year = lv_spinbox_get_value(obj) - 2000;
+            pScreen->year = lv_spinbox_get_value(obj);
         }
         else
         {
@@ -121,7 +121,7 @@ lv_obj_t *Screen_SetDate::CreateScreen(lv_indev_t *pInputDevice, bool hasNextBut
     return scr;
 }
 
-void Screen_SetDate::SetDate(uint8_t month, uint8_t day, uint8_t year)
+void Screen_SetDate::SetDate(uint8_t month, uint8_t day, uint16_t year)
 {
     this->month = month;
     this->day = day;
@@ -132,7 +132,7 @@ void Screen_SetDate::SetDate(uint8_t month, uint8_t day, uint8_t year)
     lv_spinbox_set_value(yearSpinbox, year);
 }
 
-void Screen_SetDate::GetDate(uint8_t *month, uint8_t *day, uint8_t *year)
+void Screen_SetDate::GetDate(uint8_t *month, uint8_t *day, uint16_t *year)
 {
     *month = this->month;
     *day = this->day;

@@ -11,7 +11,7 @@
 #define RTC_H
 
 #include <time.h>
-#include "RTClib.h"
+#include <RTClib.h>
 
 #define ALARM1 true
 #define ALARM2 false
@@ -24,8 +24,9 @@ void UpdateRtc(uint8_t hours,
                uint8_t month,
                uint8_t day,
                uint16_t year);
+DateTime ConvertAlarmToDate(DateTime currentTime, DateTime alarmTime);
 #ifdef KILL
-void AlarmToTimeStruct(struct tm & ts, ds3231_alrm_t & alarm);
+    void AlarmToTimeStruct(struct tm &ts, ds3231_alrm_t &alarm);
 void InitializeAlarm(ds3231_alrm_t &alarm, struct tm &ts);
 void EnableRtcInterrupt(bool alarm);
 void DisableRtcInterrupt(bool alarm);
