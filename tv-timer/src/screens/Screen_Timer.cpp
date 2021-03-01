@@ -41,7 +41,7 @@ lv_obj_t *Screen_Timer::CreateScreen(lv_indev_t *pInputDevice, bool hasNextButto
     lv_obj_set_user_data(cont, this);
 
     lv_obj_t * headerLabel = lv_label_create(cont, NULL); 
-    lv_label_set_text(headerLabel, "Time Remaining");    
+    lv_label_set_text(headerLabel, "Watch Time Left");    
 
     timeRemainingLabel = lv_label_create(cont, headerLabel); 
     lv_label_set_text(timeRemainingLabel, "");         

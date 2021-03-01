@@ -42,13 +42,13 @@ lv_obj_t *Screen_TimerRecharge::CreateScreen(lv_indev_t *pInputDevice, bool hasN
     lv_obj_set_event_cb(cont, EventHandler);
     lv_obj_set_user_data(cont, this);
 
-    timeLabel = lv_label_create(cont, NULL); /*Create a label*/
-    lv_label_set_text(timeLabel, "TIME");    /*Set the labels text*/
+    lv_obj_t *headerLabel = lv_label_create(cont, NULL); /*Create a label*/
+    lv_label_set_text(headerLabel, "Recharge");                /*Set the labels text*/
 
-    dateLabel = lv_label_create(cont, timeLabel); /*Create a label*/
-    lv_label_set_text(dateLabel, "DATE");         /*Set the labels text*/
+    lv_obj_t *headerLabel2 = lv_label_create(cont, headerLabel); /*Create a label*/
+    lv_label_set_text(headerLabel2, "Time Remaining");                     /*Set the labels text*/
 
-    rechargeLabel = lv_label_create(cont, timeLabel); /*Create a label*/
+    rechargeLabel = lv_label_create(cont, headerLabel);   /*Create a label*/
     lv_label_set_text(rechargeLabel, "0:00");             /*Set the labels text*/
 
     group = lv_group_create();
@@ -62,18 +62,6 @@ void Screen_TimerRecharge::UpdateScreen(DateTime &currentTime, DateTime &alarmTi
     char msg[64];
     if (scr)
     {
-        if (timeLabel)
-        {
-            GetTimeString(msg, currentTime);
-            lv_label_set_text(timeLabel, msg);
-        }
-
-        if (dateLabel)
-        {
-            GetDateString(msg, currentTime);
-            lv_label_set_text(dateLabel, msg);
-        }
-
         if (rechargeLabel)
         {
             GetTimeRemainingString(msg, currentTime, alarmTime);

@@ -20,10 +20,8 @@ static bool timeIsInitialized = false;
 
 static const char dateTimeStringFormat[] = "MM/DD/YYYY hh:mm:ss AP";
 
-// #define WATCH_TIME 4500
-// #define RECHARGE_TIME 7200
-#define WATCH_TIME 60
-#define RECHARGE_TIME 120
+#define WATCH_TIME 4500
+#define RECHARGE_TIME 7200
 
 static Screen_Time screen_time;
 static Screen_SetDate screen_setDate;
@@ -78,10 +76,10 @@ void TimerScreenCallback(uint8_t whichButton)
     break;
   case Screen_TimeoutComplete:
     Serial.println("Timeout, watch time is over, transitioning to recharge screen.");
-    rtc.disableAlarm(ALARM1);
-    rtc.disableAlarm(ALARM2);
-    rtc.clearAlarm(ALARM1);
-    rtc.clearAlarm(ALARM2);
+    rtc.disableAlarm(1);
+    rtc.disableAlarm(2);
+    rtc.clearAlarm(1);
+    rtc.clearAlarm(2);
     Serial.printf("Recharge time is %d\r\n", rechargeTime.totalseconds());
     alarmTime = now + rechargeTime;
     strcpy(buf, dateTimeStringFormat);
@@ -108,10 +106,10 @@ void TimerMenuScreenCallback(uint8_t whichButton)
   case Screen_Menu1Pressed:
     Serial.println("User stopped watching, transitioning to recharge screen.");
     alarmTime = rtc.getAlarm1();
-    rtc.disableAlarm(ALARM1);
-    rtc.disableAlarm(ALARM2);
-    rtc.clearAlarm(ALARM1);
-    rtc.clearAlarm(ALARM2);
+    rtc.disableAlarm(1);
+    rtc.disableAlarm(2);
+    rtc.clearAlarm(1);
+    rtc.clearAlarm(2);
     alarmTime = ConvertAlarmToDate(now, alarmTime);
     timeRemaining = TimeSpan(RECHARGE_TIME) - (alarmTime - now);
     alarmTime = now + timeRemaining;
@@ -124,10 +122,10 @@ void TimerMenuScreenCallback(uint8_t whichButton)
     break;
   case Screen_TimeoutComplete:
     Serial.println("Timeout, watch time is over, transitioning to recharge screen.");
-    rtc.disableAlarm(ALARM1);
-    rtc.disableAlarm(ALARM2);
-    rtc.clearAlarm(ALARM1);
-    rtc.clearAlarm(ALARM2);
+    rtc.disableAlarm(1);
+    rtc.disableAlarm(2);
+    rtc.clearAlarm(1);
+    rtc.clearAlarm(2);
     alarmTime = now + TimeSpan(RECHARGE_TIME);
     strcpy(buf, dateTimeStringFormat);
     now.toString(buf);
@@ -154,11 +152,11 @@ void StartScreenCallback(uint8_t whichButton)
   case Screen_Menu1Pressed:
     now = rtc.now();
     alarm = now + TimeSpan(WATCH_TIME);
-    rtc.disableAlarm(ALARM1);
-    rtc.clearAlarm(ALARM1);
+    rtc.disableAlarm(1);
+    rtc.clearAlarm(1);
     rtc.setAlarm1(alarm, DS3231_A1_Date);
-    rtc.disableAlarm(ALARM2);
-    rtc.clearAlarm(ALARM2);
+    rtc.disableAlarm(2);
+    rtc.clearAlarm(2);
     screen_timer.UpdateScreen(now, alarm);
     screen_timer.LoadScreen();
     break;
@@ -234,10 +232,13 @@ void TimerRechargeScreenCallback(uint8_t whichButton)
   {
   case Screen_TimeoutComplete:
     Serial.println("Timeout, recharge complete, transitioning to time screen.");
-    rtc.disableAlarm(ALARM1);
-    rtc.clearAlarm(ALARM1);
-    rtc.disableAlarm(ALARM2);
-    rtc.clearAlarm(ALARM2);
+    rtc.disableAlarm(1);
+    rtc.clearAlarm(1);
+    rtc.disableAlarm(2);
+    rtc.clearAlarm(2);
+    if (rtc.alarmEnabled(1)) Serial.println("Alarm 1 was enabled.");
+    if (rtc.alarmEnabled(2))
+      Serial.println("Alarm 2 was enabled.");
     screen_time.LoadScreen();
     break;
   }
@@ -351,8 +352,8 @@ void setup()
 
   Serial.begin(115200);
 
-  Serial.println("Delay...");
-  delay(10000);
+  // Serial.println("Delay...");
+  // delay(10000);
   Serial.println("Starting...");
 
   //threads.addThread(testThread, 0, 2048);
@@ -411,17 +412,17 @@ void setup()
   {
     Serial.println("RTC oscillator already configured.");
     timeIsInitialized = true;
-    // if (rtc.alarmEnabled(1))
-    // {
-    //   Serial.println("Timer was running, loading timer screen.");
-    //   screen_timer.LoadScreen();
-    // }
-    // else if (rtc.alarmEnabled(2))
-    // {
-    //   Serial.println("Timer was recharging, loading recharge screen.");
-    //   screen_timerRecharge.LoadScreen();
-    // }
-    // else
+    if (rtc.alarmEnabled(1))
+    {
+      Serial.println("Timer was running, loading timer screen.");
+      screen_timer.LoadScreen();
+    }
+    else if (rtc.alarmEnabled(2))
+    {
+      Serial.println("Timer was recharging, loading recharge screen.");
+      screen_timerRecharge.LoadScreen();
+    }
+    else
     {
       screen_time.LoadScreen();
     }
