@@ -25,14 +25,5 @@ void UpdateRtc(uint8_t hours,
                uint8_t day,
                uint16_t year);
 DateTime ConvertAlarmToDate(DateTime currentTime, DateTime alarmTime);
-#ifdef KILL
-    void AlarmToTimeStruct(struct tm &ts, ds3231_alrm_t &alarm);
-void InitializeAlarm(ds3231_alrm_t &alarm, struct tm &ts);
-void EnableRtcInterrupt(bool alarm);
-void DisableRtcInterrupt(bool alarm);
-void ClearRtcFlag(bool alarm);
-void ClearRtcFlags();
-time_t GetAlarmEpoch(bool whichAlarm);
-#endif
 
 #endif // RTC_H
